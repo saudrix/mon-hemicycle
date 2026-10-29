@@ -1,0 +1,48 @@
+# Reconstruit les données depuis l'open data de l'Assemblée nationale et publie
+# l'application sur GitHub Pages : à chaque push sur main, et chaque matin.
+name: Données et déploiement
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '30 5 * * *' # 5h30 UTC, après la mise à jour quotidienne de l'open data
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run data
+      - run: npm run build
+        env:
+          # Adresse du Worker de notifications (Settings → Secrets and variables → Actions → Variables)
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

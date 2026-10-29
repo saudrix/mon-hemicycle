@@ -1,0 +1,18 @@
+name = "mon-hemicycle"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Veille des nouveaux scrutins toutes les 5 minutes.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Abonnements push et derniers scrutins lus sur le site de l'Assemblée.
+[[kv_namespaces]]
+binding = "DONNEES"
+
+[vars]
+VAPID_PUBLIC_KEY = ""
+VAPID_SUBJECT = "https://github.com/"
+ORIGINES = ""
+URL_APP = ""
+# VAPID_PRIVATE_JWK est un secret : npx wrangler secret put VAPID_PRIVATE_JWK

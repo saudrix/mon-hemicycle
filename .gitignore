@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dev-dist/
+.cache/
+# Données générées par `npm run data` (et chaque nuit par la CI)
+public/data/
+.DS_Store
+*.log
+.env.local
+
+# Réglages locaux de l’éditeur
+.claude/
