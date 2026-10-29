@@ -10,3 +10,7 @@ public/data/
 
 # Réglages locaux de l’éditeur
 .claude/
+
+# Builds natifs (générés par Capacitor)
+ios/App/App/public/
+android/app/src/main/assets/public/

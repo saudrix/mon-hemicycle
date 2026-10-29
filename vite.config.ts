@@ -4,11 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // `base: './'` permet de servir l'application depuis n'importe quel sous-chemin
 // (GitHub Pages : https://<compte>.github.io/mon-hemicycle/).
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './',
   plugins: [
     react(),
     VitePWA({
+      // Dans l'app native (Capacitor), pas de service worker : la coque s'en charge.
+      disable: mode === 'mobile',
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -49,4 +51,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

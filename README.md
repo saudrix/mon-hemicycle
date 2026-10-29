@@ -119,6 +119,20 @@ npm run dev       # http://localhost:5173
 L'installation sur l'écran d'accueil et le mode hors connexion exigent HTTPS : pour les tester, utiliser la version
 déployée sur GitHub Pages.
 
+### Applications iOS et Android
+
+La même application est enveloppée dans une coque native avec [Capacitor](https://capacitorjs.com) (dossiers `ios/`
+et `android/`). La version native n'embarque pas les données : elle les lit sur le site publié
+(`VITE_DATA_URL` dans `.env.mobile`).
+
+```bash
+npm run ios        # construit, synchronise et ouvre le projet dans Xcode
+npm run android    # idem dans Android Studio
+```
+
+Pour l'installer sur son propre iPhone sans passer par l'App Store : brancher le téléphone, choisir son identifiant
+Apple dans *Signing & Capabilities* (un compte gratuit suffit, l'app reste alors installée 7 jours), puis lancer.
+
 ### Déployer sur GitHub Pages
 
 1. Pousser le dépôt sur GitHub.
@@ -151,7 +165,8 @@ En local, `npm run dev` dans `worker/` démarre le Worker sur le port 8787 (clé
 - Notification du vote de mon député
 - Suivi de plusieurs députés, comparaison
 - Interventions en séance et questions écrites
-- Publication sur l'App Store et le Play Store (via une coque native) si l'usage le justifie
+- Notifications natives (APNs, FCM) dans les applications iOS et Android
+- Publication sur l'App Store et le Play Store
 
 ## Contribuer
 

@@ -16,7 +16,11 @@ const CLE_MODE = 'mon-hemicycle:notifications';
 const estIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const estInstallee = () => matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
 
+const estNatif = () => (window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() === true;
+
 export async function etatPush(): Promise<EtatPush> {
+  // Les notifications de l'app native passeront par les services d'Apple et de Google (à venir).
+  if (estNatif()) return { statut: 'indisponible', raison: 'Bientôt disponible dans l’application.' };
   if (!API) return { statut: 'indisponible', raison: "Le service de notifications n'est pas configuré." };
   // Sur iPhone, les notifications ne sont proposées qu'à une application ajoutée à l'écran d'accueil.
   if (estIos() && !estInstallee()) return { statut: 'a-installer' };

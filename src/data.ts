@@ -65,9 +65,12 @@ export type JourPresence = {
 
 const cache = new Map<string, Promise<unknown>>();
 
+// Version web : données servies avec l'application. Version native : lues sur le site publié.
+const BASE_DONNEES = (import.meta.env.VITE_DATA_URL as string | undefined) ?? import.meta.env.BASE_URL;
+
 function load<T>(path: string): Promise<T> {
   if (!cache.has(path)) {
-    const p = fetch(`${import.meta.env.BASE_URL}data/${path}`).then((r) => {
+    const p = fetch(`${BASE_DONNEES}data/${path}`).then((r) => {
       if (!r.ok) throw new Error(`Données indisponibles (${path})`);
       return r.json();
     });
