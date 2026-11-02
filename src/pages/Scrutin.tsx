@@ -85,6 +85,10 @@ export function Scrutin() {
         </Link>
       )}
 
+      <Link to={`/carte?scrutin=${num}`} className="lien-carte">
+        🗺️ Voir ce vote sur la carte de France
+      </Link>
+
       <section>
         <h2>Vote des groupes</h2>
         <ul className="liste groupes">

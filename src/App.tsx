@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { getMeta, formatDate } from './data';
 import { useAsync } from './hooks';
+import { Carte } from './pages/Carte';
 import { DeputePage } from './pages/Depute';
 import { MonDepute } from './pages/MonDepute';
 import { Presence } from './pages/Presence';
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/scrutins" element={<Scrutins />} />
           <Route path="/scrutins/:num" element={<Scrutin />} />
           <Route path="/presence" element={<Presence />} />
+          <Route path="/carte" element={<Carte />} />
           <Route path="/deputes/:id" element={<DeputePage />} />
         </Routes>
         <Source />
@@ -37,6 +39,10 @@ export function App() {
         <NavLink to="/scrutins">
           <Icone d="M4 20h16M6 16V9m4 7V5m4 11v-6m4 6V7" />
           Scrutins
+        </NavLink>
+        <NavLink to="/carte">
+          <Icone d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14" />
+          Carte
         </NavLink>
         <NavLink to="/presence">
           <Icone d="M4 5h16v15H4zM4 10h16M9 3v4m6-4v4m-7 7 2.5 2.5L16 12" />
@@ -56,10 +62,10 @@ function Icone({ d }: { d: string }) {
 }
 
 function HautDePage() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, search]);
   return null;
 }
 

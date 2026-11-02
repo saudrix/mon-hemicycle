@@ -119,6 +119,10 @@ export async function getScrutinsAJour() {
   return { ...donnees, scrutins: [...enPlus, ...donnees.scrutins], direct: new Set(enPlus.map((s) => s[0])) };
 }
 
+/** Contours simplifiés des circonscriptions, par zone (métropole, Île-de-France, outre-mer). */
+export const getCarte = () =>
+  load<{ id: string; nom: string; largeur: number; hauteur: number; circos: { k: string; d: string }[] }[]>('carte.json');
+
 export const getCommissions = () => load<Record<string, string>>('commissions.json');
 export const getCirconscriptions = (dep: string) =>
   load<{ c: number; g: number[][][][] }[]>(`circonscriptions/${dep}.json`);

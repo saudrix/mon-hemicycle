@@ -7,6 +7,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { unzipSync, strFromU8 } from 'fflate';
+import { construireCarte } from './carte.mjs';
 
 const LEGISLATURE = '17';
 const AN = `https://data.assemblee-nationale.fr/static/openData/repository/${LEGISLATURE}`;
@@ -276,6 +277,10 @@ async function main() {
 
   write('commissions.json', commissions);
   for (const [dep, features] of Object.entries(circos)) write(`circonscriptions/${dep}.json`, features);
+  write(
+    'carte.json',
+    construireCarte(Object.entries(circos).flatMap(([dep, fs]) => fs.map((f) => ({ dep, circo: f.c, polygones: f.g })))),
+  );
 
   console.log(`✓ données écrites dans ${OUT}`);
 }

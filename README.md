@@ -21,6 +21,9 @@ l'ajoute à l'écran d'accueil, c'est tout.
 - **En direct et notifications** : les scrutins apparaissent dans l'application quelques minutes après le vote,
   et l'on peut recevoir une notification à chaque nouveau scrutin, ou seulement pour les votes sur l'ensemble d'un
   texte et les motions de censure.
+- **Carte de France** : chaque circonscription colorée selon le groupe de son député, avec la métropole, un zoom
+  sur Paris et la petite couronne, l'outre-mer et les Français de l'étranger ; ou selon le vote de chaque député pour
+  un scrutin donné.
 - **Présence** : taux de participation aux scrutins et de présence en commission, sur une journée ou une période
   choisie, par groupe, par région ou par député.
 

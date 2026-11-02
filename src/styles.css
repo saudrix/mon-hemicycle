@@ -51,7 +51,7 @@ main { max-width: 680px; margin: 0 auto; padding: 0 16px calc(var(--nav) + env(s
 
 .onglets-bas {
   position: fixed; inset: auto 0 0 0; z-index: 5;
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   height: calc(var(--nav) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -295,3 +295,46 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .secondaire { background: none; color: var(--texte); border-color: var(--ligne); }
 button:disabled { opacity: 0.6; cursor: default; }
 .badge.direct { background: var(--contre); }
+
+/* ---------- Carte ---------- */
+
+.legende-carte { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.75rem 0; }
+.legende-carte button {
+  display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem;
+  border-radius: 999px; border: 1px solid var(--ligne); background: var(--surface); font-size: 0.78rem; font-weight: 600;
+}
+.legende-carte button[aria-pressed='true'] { border-color: var(--texte); box-shadow: inset 0 0 0 1px var(--texte); }
+.legende-carte i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legende-carte b { color: var(--doux); font-weight: 600; font-variant-numeric: tabular-nums; }
+.carte { width: 100%; height: auto; display: block; touch-action: manipulation; }
+.circo { stroke: var(--fond); stroke-width: 0.6; cursor: pointer; transition: opacity 0.15s; }
+.circo.choisie { stroke: var(--texte); stroke-width: 2.5; }
+.encart .circo { stroke-width: 0.8; }
+.encarts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem; }
+.encart { margin: 0; padding: 0.4rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--ligne); }
+.encart.large { grid-column: 1 / -1; }
+.encart svg { width: 100%; height: auto; max-height: 220px; display: block; }
+.encart.large svg { max-height: 360px; }
+.encart figcaption { font-size: 0.68rem; color: var(--doux); text-align: center; margin-top: 0.2rem; }
+.cases { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.case {
+  min-width: 46px; height: 34px; padding: 0 0.4rem; border-radius: 8px; border: 2px solid transparent;
+  color: #fff; font-size: 0.72rem; font-weight: 700; text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+.case.choisie { border-color: var(--texte); }
+.fiche-carte {
+  position: sticky; bottom: calc(var(--nav) + env(safe-area-inset-bottom) + 8px); z-index: 4;
+  display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; padding: 0.6rem 0.8rem;
+  border-radius: var(--rayon); background: var(--surface); border: 1px solid var(--ligne);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); color: inherit; text-decoration: none;
+}
+.fiche-carte img { width: 44px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--vide); }
+.fiche-carte div { flex: 1; display: grid; gap: 0.15rem; min-width: 0; }
+.fiche-carte small { color: var(--doux); font-size: 0.75rem; }
+.fiche-carte-pied { display: flex; align-items: center; gap: 0.5rem; }
+.fiche-carte em { font-size: 0.75rem; color: var(--doux); }
+.fiche-carte > span { font-size: 1.5rem; color: var(--doux); }
+.lien-carte {
+  display: block; margin-top: 0.75rem; padding: 0.8rem 1rem; border-radius: var(--rayon);
+  background: var(--surface); border: 1px solid var(--ligne); color: var(--accent); font-weight: 600; text-decoration: none;
+}
