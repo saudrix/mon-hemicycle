@@ -14,3 +14,4 @@ public/data/
 # Builds natifs (générés par Capacitor)
 ios/App/App/public/
 android/app/src/main/assets/public/
+ios/App/build/

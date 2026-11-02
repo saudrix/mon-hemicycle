@@ -7,8 +7,6 @@ const config: CapacitorConfig = {
   appId: 'io.github.saudrix.monhemicycle',
   appName: 'Mon Hémicycle',
   webDir: 'dist',
-  backgroundColor: '#1f2a44',
-  ios: { contentInset: 'never' },
 };
 
 export default config;
