@@ -443,3 +443,73 @@ a.mon-vote {
   background: var(--blanc);
   font-size: 0.86rem;
 }
+
+/* -----------------------------------------------------------------------
+   10. LE VERDICT D'UN SCRUTIN
+   Le bandeau prend la couleur du verdict : la réponse arrive avant la lecture.
+   L'encre tient dessus — mesuré 5,9:1 sur le vert, 5,4:1 sur le corail — et
+   c'est le seul endroit où une couleur de vote couvre une surface entière.
+   -------------------------------------------------------------------- */
+
+.resultat {
+  gap: 0.7rem;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border-radius: var(--r-section);
+}
+
+.resultat.adopte {
+  background: var(--pour);
+}
+
+.resultat.rejete {
+  background: var(--contre);
+}
+
+.resultat.adopte > strong,
+.resultat.rejete > strong {
+  color: var(--encre);
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.resultat.adopte small,
+.resultat.rejete small,
+.resultat.adopte .resultat-chiffres,
+.resultat.rejete .resultat-chiffres {
+  color: var(--texte-sur-marque);
+}
+
+/* Sur le bandeau coloré, les décomptes reprennent l'encre : les encres de badge
+   deviendraient boueuses sur un aplat de la même famille. */
+.resultat.adopte .t-p,
+.resultat.adopte .t-c,
+.resultat.adopte .t-a,
+.resultat.rejete .t-p,
+.resultat.rejete .t-c,
+.resultat.rejete .t-a {
+  color: var(--encre);
+}
+
+/* Sur un aplat de vote, le segment de la même couleur se fondrait dans le fond :
+   la barre reçoit une piste blanche qui la détache des trois côtés. */
+.resultat.adopte .barre,
+.resultat.rejete .barre {
+  height: 16px;
+  padding: 2.5px;
+  background: var(--blanc);
+  border-radius: 9px;
+}
+
+.resultat.adopte .barre span,
+.resultat.rejete .barre span {
+  border-radius: 4px;
+}
+
+/* La position du député suivi, posée sur le bandeau du verdict. */
+.mon-vote {
+  padding: 0.85rem 1.05rem;
+  border-radius: var(--r-petit);
+  background: var(--blanc);
+  border: var(--trait);
+  font-size: 0.9rem;
+}
