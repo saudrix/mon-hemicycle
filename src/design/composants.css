@@ -54,8 +54,7 @@
 .suggestions,
 .carte-texte,
 .ligne-amendement,
-.fiche-carte,
-.accueil-etape {
+.fiche-carte {
   background: var(--creme);
   border: 0;
   border-radius: var(--r-carte);
@@ -618,4 +617,127 @@ a.mon-vote {
   border-radius: 3px;
   border: 1.4px solid var(--encre);
   box-sizing: border-box;
+}
+
+/* -----------------------------------------------------------------------
+   13. L'ACCUEIL EN TROIS TEMPS
+   Personne n'est encore choisi à cet instant : aucun siège n'est marqué, et le
+   jaune de marque ne sert qu'à la progression et à l'action.
+   -------------------------------------------------------------------- */
+
+.accueil {
+  background: var(--blanc);
+}
+
+/* Les repères d'étape sont cernés : l'étape faite ne tient pas sur la seule
+   couleur, le trait la porte aussi. */
+.accueil-points li {
+  width: 26px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--blanc);
+  border: 1.6px solid var(--encre);
+  box-sizing: border-box;
+}
+
+.accueil-points li.fait {
+  background: var(--jaune);
+}
+
+/* « Passer » doit rester atteignable au pouce : 17 px de haut ne suffisent pas. */
+.accueil-haut .lien {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  margin: -12px -4px;
+}
+
+.accueil-etape h1 {
+  font-size: 1.95rem;
+  line-height: 1.05;
+}
+
+.accueil-etape {
+  gap: 1rem;
+  background: transparent;
+}
+
+.accueil-logo {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  border: 2.6px solid var(--encre);
+  background: var(--jaune);
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+/* Les trois promesses se rangent : fond crème, pas de trait. Ce qui se clique
+   porte le trait, et elles ne se cliquent pas. */
+.accueil-atouts li {
+  padding: 0.9rem 1.05rem;
+  border-radius: var(--r-carte);
+  background: var(--creme);
+  border: 0;
+}
+
+.accueil-atouts li b {
+  font-family: var(--titres);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.accueil-atouts span {
+  color: var(--texte-second);
+}
+
+.principal.large {
+  min-height: 56px;
+  padding: 0.95rem;
+  font-size: 1.05rem;
+}
+
+.accueil-depute {
+  border-radius: var(--r-section);
+  background: var(--jaune);
+  border: 0;
+}
+
+.accueil-depute img {
+  width: 70px;
+  height: 88px;
+  border-radius: 18px;
+  border: 2.6px solid var(--encre);
+  background: var(--creme);
+}
+
+.accueil-depute strong {
+  font-family: var(--titres);
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.accueil-depute small {
+  color: var(--texte-sur-marque);
+}
+
+/* -----------------------------------------------------------------------
+   14. LES NOTIFICATIONS
+   -------------------------------------------------------------------- */
+
+.notifications {
+  border-radius: var(--r-section);
+  padding: 1.05rem 1.1rem;
+}
+
+.notifications p {
+  color: var(--texte-second);
+}
+
+.notifications .case-a-cocher input {
+  accent-color: var(--encre);
+  width: 20px;
+  height: 20px;
 }
