@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BarreVote, Chargement, Pastille, PositionChip } from '../components';
 import {
+  type Amendement,
   type GroupeVote,
   type Meta,
   type Position,
@@ -18,6 +19,7 @@ import {
   positionMajoritaire,
 } from '../data';
 import { useAsync } from '../hooks';
+import { LIBELLES_NATURE, decouper, portee } from '../lecture';
 
 export function Scrutin() {
   const num = Number(useParams().num);
@@ -41,15 +43,29 @@ export function Scrutin() {
       ? positionDe(detail, monDepute)
       : undefined;
   const votants = pour + contre + abs;
+  const lecture = decouper(titre);
+  const nomTexte = (dossier && dossiers[dossier]) || lecture.texte;
+  const consequence = portee(lecture.nature, !!adopte, lecture.lecture);
 
   return (
     <div className="page">
       <p className="surtitre">
-        {TYPES_SCRUTIN[type] ?? type} · n° {num}
+        {LIBELLES_NATURE[lecture.nature]} · {TYPES_SCRUTIN[type] ?? type} · n° {num}
       </p>
-      <h1 className="titre-scrutin">{titre}</h1>
+      <h1 className="titre-scrutin">{lecture.objet}</h1>
       <p className="date">{formatDate(date)}</p>
-      {dossier && dossiers[dossier] && <p className="dossier">📁 {dossiers[dossier]}</p>}
+      {nomTexte &&
+        (dossier ? (
+          <Link to={`/textes/${dossier}`} className="lien-texte">
+            <span>
+              📁 {nomTexte}
+              {lecture.lecture && <small> · {lecture.lecture}</small>}
+            </span>
+            <span aria-hidden>›</span>
+          </Link>
+        ) : (
+          <p className="dossier">📁 {nomTexte}</p>
+        ))}
 
       <section className={`resultat ${adopte ? 'adopte' : 'rejete'}`}>
         <strong>{adopte ? 'Adopté' : 'Rejeté'}</strong>
@@ -85,6 +101,15 @@ export function Scrutin() {
         </Link>
       )}
 
+      {consequence && (
+        <section className="portee">
+          <h2>Ce que ça change</h2>
+          <p>{consequence}</p>
+        </section>
+      )}
+
+      {detail.amdt && <Expose a={detail.amdt} meta={meta} />}
+
       <Link to={`/carte?scrutin=${num}`} className="lien-carte">
         🗺️ Voir ce vote sur la carte de France
       </Link>
@@ -104,6 +129,7 @@ export function Scrutin() {
         </p>
       </section>
 
+      <p className="note">Intitulé officiel : {titre}</p>
       {detail.demandeur && <p className="note">Scrutin demandé par : {detail.demandeur}</p>}
       <p className="note">
         <a href={`https://www.assemblee-nationale.fr/dyn/17/scrutins/${num}`} target="_blank" rel="noreferrer">
@@ -111,6 +137,45 @@ export function Scrutin() {
         </a>
       </p>
     </div>
+  );
+}
+
+/** Exposé sommaire de l'amendement : le point de vue de son auteur, replié après quelques lignes. */
+function Expose({ a, meta }: { a: Amendement; meta: Meta }) {
+  const [ouvert, setOuvert] = useState(false);
+  const groupe = a.groupe ? meta.groupes[a.groupe] : undefined;
+  const long = a.expose.length > 320;
+  return (
+    <section className="expose">
+      <h2>L’auteur explique</h2>
+      <p className="expose-auteur">
+        {a.gouvernement ? 'Le Gouvernement' : a.auteur}
+        {a.signataires > 1 && ` et ${a.signataires - 1} cosignataire${a.signataires > 2 ? 's' : ''}`}
+        {groupe && <Pastille groupe={groupe} />}
+      </p>
+      {a.expose ? (
+        <>
+          <div className={`expose-texte${ouvert || !long ? '' : ' replie'}`}>
+            {a.expose.split('\n').map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
+          {long && (
+            <button className="lien" onClick={() => setOuvert(!ouvert)}>
+              {ouvert ? 'Replier' : 'Lire la suite'}
+            </button>
+          )}
+        </>
+      ) : (
+        <p className="note">L’auteur n’a pas publié d’exposé pour cet amendement.</p>
+      )}
+      <p className="note">
+        Texte rédigé par l’auteur de l’amendement : il présente son point de vue, pas celui de l’Assemblée.{' '}
+        <a href={`https://www.assemblee-nationale.fr/dyn/17/amendements/${a.uid}`} target="_blank" rel="noreferrer">
+          L’amendement complet ↗
+        </a>
+      </p>
+    </section>
   );
 }
 

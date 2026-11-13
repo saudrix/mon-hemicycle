@@ -8,6 +8,7 @@ import { MonDepute } from './pages/MonDepute';
 import { Presence } from './pages/Presence';
 import { Scrutin } from './pages/Scrutin';
 import { Scrutins } from './pages/Scrutins';
+import { TextePage } from './pages/Texte';
 
 // HashRouter : les URL restent valides sur un hébergement statique (GitHub Pages) sans réécriture serveur.
 export function App() {
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/scrutins" element={<Scrutins />} />
           <Route path="/scrutins/:num" element={<Scrutin />} />
           <Route path="/presence" element={<Presence />} />
+          <Route path="/textes/:id" element={<TextePage />} />
           <Route path="/carte" element={<Carte />} />
           <Route path="/deputes/:id" element={<DeputePage />} />
         </Routes>

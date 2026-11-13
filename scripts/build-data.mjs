@@ -4,10 +4,13 @@
 // Usage : node scripts/build-data.mjs [--offline]
 //   --offline : réutilise les archives déjà présentes dans .cache sans les retélécharger.
 
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { unzipSync, strFromU8 } from 'fflate';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { Unzip, UnzipInflate, unzipSync, strFromU8 } from 'fflate';
 import { construireCarte } from './carte.mjs';
+import { indexerAmendements, lireDossiers, lireExposes, rattacher } from './textes.mjs';
 
 const LEGISLATURE = '17';
 const AN = `https://data.assemblee-nationale.fr/static/openData/repository/${LEGISLATURE}`;
@@ -15,6 +18,9 @@ const SOURCES = {
   scrutins: `${AN}/loi/scrutins/Scrutins.json.zip`,
   acteurs: `${AN}/amo/deputes_senateurs_ministres_legislature/AMO20_dep_sen_min_tous_mandats_et_organes.json.zip`,
   agenda: `${AN}/vp/reunions/Agenda.json.zip`,
+  dossiers: `${AN}/loi/dossiers_legislatifs/Dossiers_Legislatifs.json.zip`,
+  // ~350 Mo : lu en flux, fichier par fichier.
+  amendements: `${AN}/loi/amendements_div_legis/Amendements.json.zip`,
   circonscriptions:
     'https://static.data.gouv.fr/resources/contours-geographiques-des-circonscriptions-legislatives/20240613-191520/circonscriptions-legislatives-p10.geojson',
 };
@@ -36,9 +42,31 @@ async function download(name, url) {
     console.log(`↓ ${name}`);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${url} : HTTP ${res.status}`);
-    writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+    // Écrit à côté puis renomme : une archive interrompue ne remplace jamais la précédente.
+    await pipeline(Readable.fromWeb(res.body), createWriteStream(`${file}.part`));
+    renameSync(`${file}.part`, file);
   }
   return readFileSync(file);
+}
+
+/** Parcourt une archive en flux, sans la décompresser entièrement en mémoire. */
+function parcourirJson(zip) {
+  return (filter, rappel) => {
+    const unzip = new Unzip();
+    unzip.register(UnzipInflate);
+    unzip.onfile = (f) => {
+      if (!f.name.endsWith('.json') || !filter(f.name)) return;
+      const morceaux = [];
+      f.ondata = (err, data, fin) => {
+        if (err) throw err;
+        morceaux.push(data);
+        if (fin) rappel(f.name, JSON.parse(Buffer.concat(morceaux).toString('utf8')));
+      };
+      f.start();
+    };
+    const PAS = 1 << 20;
+    for (let i = 0; i < zip.length; i += PAS) unzip.push(zip.subarray(i, i + PAS), i + PAS >= zip.length);
+  };
 }
 
 function* jsonEntries(zip, filter = () => true) {
@@ -115,6 +143,7 @@ function buildScrutins(zip, indexOf) {
   const details = {};
   const dossiers = {};
   const votesParDepute = new Map();
+  const seances = new Map();
 
   for (const [, json] of jsonEntries(zip)) {
     const s = json.scrutin;
@@ -129,6 +158,7 @@ function buildScrutins(zip, indexOf) {
       num, s.dateScrutin, code, s.sort.code === 'adopté' ? 1 : 0, titre,
       +d.pour, +d.contre, +d.abstentions, +d.nonVotants, dossier?.dossierRef ?? null,
     ]);
+    seances.set(num, s.seanceRef);
 
     const grp = [];
     for (const g of list(s.ventilationVotes?.organe?.groupes?.groupe)) {
@@ -154,7 +184,7 @@ function buildScrutins(zip, indexOf) {
     };
   }
   resume.sort((x, y) => y[0] - x[0]);
-  return { resume, details, dossiers, votesParDepute };
+  return { resume, details, dossiers, votesParDepute, seances };
 }
 
 // ---------- Présence en commission (agenda) ----------
@@ -205,7 +235,7 @@ function write(path, data) {
 
 async function main() {
   mkdirSync(CACHE, { recursive: true });
-  const [zScrutins, zActeurs, zAgenda, bCirco] = await Promise.all(
+  const [zScrutins, zActeurs, zAgenda, zDossiers, zAmendements, bCirco] = await Promise.all(
     Object.entries(SOURCES).map(([name, url]) => download(name, url)),
   );
 
@@ -214,8 +244,48 @@ async function main() {
   const indexOf = (id) => index.get(id);
   console.log(`✓ ${deputes.length} députés (${deputes.filter((d) => d.actif).length} en fonction), ${Object.keys(groupes).length} groupes`);
 
-  const { resume, details, dossiers, votesParDepute } = buildScrutins(zScrutins, indexOf);
+  const { resume, details, dossiers, votesParDepute, seances } = buildScrutins(zScrutins, indexOf);
   console.log(`✓ ${resume.length} scrutins`);
+
+  // Textes de loi et amendements rattachés à chaque scrutin.
+  const textes = lireDossiers(parcourirJson(zDossiers));
+  const amendements = indexerAmendements(parcourirJson(zAmendements));
+  const liens = rattacher(
+    resume.map((s) => ({ num: s[0], date: s[1], titre: s[4], dossierRef: s[9], seance: seances.get(s[0]) })),
+    amendements,
+    textes,
+  );
+  const exposes = lireExposes(
+    parcourirJson(zAmendements),
+    new Set([...liens.values()].flatMap((l) => (l.amendement ? [l.amendement.fichier] : []))),
+  );
+  let avecAmendement = 0;
+  const utilises = new Set();
+  for (const s of resume) {
+    const { dossier, amendement } = liens.get(s[0]);
+    s[9] = dossier;
+    if (dossier) {
+      utilises.add(dossier);
+      dossiers[dossier] = textes.get(dossier)?.t ?? dossiers[dossier] ?? null;
+    }
+    if (amendement) {
+      avecAmendement++;
+      details[s[0]].amdt = {
+        uid: amendement.uid,
+        auteur: amendement.auteur,
+        signataires: amendement.signataires,
+        groupe: amendement.groupe,
+        gouvernement: amendement.gouvernement,
+        article: amendement.article,
+        expose: exposes.get(amendement.fichier) ?? '',
+      };
+    }
+  }
+  const nbAmdt = resume.filter((s) => /^(L'amendement|Le sous-amendement)/.test(s[4])).length;
+  console.log(
+    `✓ ${amendements.n} amendements ; ${avecAmendement}/${nbAmdt} scrutins d'amendement reliés, ` +
+      `${resume.filter((s) => s[9]).length}/${resume.length} scrutins rattachés à un texte`,
+  );
 
   const commission = buildPresenceCommission(zAgenda, indexOf);
   console.log(`✓ présence en commission pour ${commission.size} députés`);
@@ -232,6 +302,8 @@ async function main() {
     deputes,
   });
   write('scrutins.json', { dossiers, scrutins: resume });
+  // Parcours des textes votés : [lieu, étape, date, issue].
+  write('textes.json', Object.fromEntries([...utilises].filter((uid) => textes.has(uid)).map((uid) => [uid, textes.get(uid)])));
 
   // Détail des scrutins par paquets de 250 pour ne charger que ce qui est consulté.
   const paquets = {};

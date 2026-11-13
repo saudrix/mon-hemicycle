@@ -33,6 +33,28 @@ export type ScrutinDetail = {
   demandeur: string | null;
   typeMajorite: string;
   grp: GroupeVote[];
+  /** amendement mis aux voix, quand il a pu être retrouvé dans l'open data */
+  amdt?: Amendement;
+};
+
+export type Amendement = {
+  uid: string;
+  /** premier signataire */
+  auteur: string;
+  signataires: number;
+  groupe: string | null;
+  gouvernement: boolean;
+  article: string | null;
+  /** exposé sommaire rédigé par l'auteur */
+  expose: string;
+};
+
+/** Dossier législatif : titre, procédure, initiative, étapes [lieu, étape, date, issue]. */
+export type Texte = {
+  t: string;
+  p: string;
+  i: string | null;
+  e: [string, string, string | null, string | null][];
 };
 
 /** [groupe, membres, pour, contre, abstentions, non-votants, position majoritaire, index des députés par position] */
@@ -85,6 +107,17 @@ export const getScrutins = () => load<{ dossiers: Record<string, string>; scruti
 export const getScrutinDetail = async (num: number) =>
   (await load<Record<string, ScrutinDetail>>(`scrutins/${Math.floor(num / 250)}.json`))[num];
 export const getActivite = (id: string) => load<DeputeActivite>(`deputes/${id}.json`);
+export const getTextes = () => load<Record<string, Texte>>('textes.json');
+
+/** Mon député et sa position dans chaque scrutin, pour l'afficher dans les listes. */
+export type MesVotes = { depute: Depute; positions: Map<number, Position> };
+export async function getMesVotes(): Promise<MesVotes | null> {
+  const meta = await getMeta();
+  const depute = deputeDuChoix(meta, lireChoix());
+  if (!depute) return null;
+  const { votes } = await getActivite(depute.id);
+  return { depute, positions: new Map(votes.map(([num, pos]) => [num, pos])) };
+}
 export const getPresence = () => load<{ jours: JourPresence[] }>('presence.json');
 /** Scrutin lu en direct sur le site de l'Assemblée par le Worker, avant sa parution dans l'open data. */
 export type ScrutinDirect = {

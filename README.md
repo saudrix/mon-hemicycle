@@ -16,8 +16,14 @@ l'ajoute à l'écran d'accueil, c'est tout.
 - **Mon député** : à partir de son adresse, retrouver sa circonscription et la personne qui y siège ; voir ses votes,
   sa participation aux scrutins, sa présence en commission mois par mois, et la part de ses votes conformes à la
   position de son groupe.
-- **Scrutins** : tous les scrutins publics de la législature, avec recherche, filtre (solennels, motions de censure),
-  résultat pour / contre / abstention, répartition par groupe politique et liste nominative des votants.
+- **Scrutins** : tous les scrutins publics de la législature, regroupés par texte de loi (ou par jour de séance),
+  avec recherche, filtre (solennels, motions de censure), résultat pour / contre / abstention, répartition par groupe
+  politique et liste nominative des votants. Les amendements sont repliés sous leur texte pour laisser voir d'abord
+  les votes clés (ensemble du texte, articles, motions).
+- **Lire un scrutin** : un titre en langage clair, ce que le résultat change, la position de son député, et pour un
+  amendement l'exposé rédigé par son auteur.
+- **Textes de loi** : le parcours de chaque texte (lectures à l'Assemblée et au Sénat, commission mixte paritaire,
+  Conseil constitutionnel, promulgation), ses votes clés et l'historique des votes sur ses amendements.
 - **En direct et notifications** : les scrutins apparaissent dans l'application quelques minutes après le vote,
   et l'on peut recevoir une notification à chaque nouveau scrutin, ou seulement pour les votes sur l'ensemble d'un
   texte et les motions de censure ; en option, une notification à chaque vote de son député, avec sa position.
@@ -52,6 +58,14 @@ récent), il faut d'abord avoir ajouté l'application à l'écran d'accueil et l
 Dans les vues par groupe et par région, chaque député est rattaché à son groupe et à sa région **actuels**, et les
 taux sont pondérés (total des votes ÷ total des scrutins des membres).
 
+**Rattachement des scrutins aux textes et aux amendements.** L'open data des scrutins ne renseigne le texte que
+pour un scrutin sur trois, et jamais l'amendement mis aux voix. L'amendement est retrouvé par son numéro et la
+séance où il a été examiné (à défaut, le jour où il a été tranché, ou le texte concerné), en vérifiant que l'auteur
+cité dans le titre du scrutin figure parmi ses signataires. Le texte est celui de l'amendement, sinon celui examiné
+dans la même séance dont le titre correspond. Environ trois scrutins d'amendement sur quatre sont ainsi reliés à leur
+exposé ; les autres restent affichés sans exposé. L'exposé sommaire est le point de vue de l'auteur de l'amendement,
+présenté comme tel.
+
 Les mises au point (corrections de vote déclarées après coup) ne sont pas prises en compte : comme l'Assemblée, on
 affiche le vote tel qu'il a été enregistré.
 
@@ -62,6 +76,8 @@ affiche le vote tel qu'il a été enregistré.
 | Scrutins, votes nominatifs | [data.assemblee-nationale.fr](https://data.assemblee-nationale.fr), jeu « Scrutins » | [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/) |
 | Députés, groupes, mandats | data.assemblee-nationale.fr, jeu « Députés, sénateurs et ministres (AMO20) » | Licence Ouverte 2.0 |
 | Présence en commission | data.assemblee-nationale.fr, jeu « Agenda » (feuilles de présence des réunions) | Licence Ouverte 2.0 |
+| Textes de loi et leur parcours | data.assemblee-nationale.fr, jeu « Dossiers législatifs » | Licence Ouverte 2.0 |
+| Amendements (auteur, exposé sommaire) | data.assemblee-nationale.fr, jeu « Amendements » (~350 Mo, lu en flux) | Licence Ouverte 2.0 |
 | Contours des circonscriptions | [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/contours-geographiques-des-circonscriptions-legislatives/) | Licence Ouverte 2.0 |
 | Géocodage des adresses | [Géoplateforme IGN](https://geoservices.ign.fr/documentation/services/services-geoplateforme/geocodage), appelée depuis le navigateur | Licence Ouverte 2.0 |
 | Photos des députés | Site de l'Assemblée nationale, chargées à la volée | Droits de l'Assemblée nationale |
@@ -100,7 +116,9 @@ aussi la page de chaque nouveau scrutin pour connaître la position de chaque d�
 ```
 scripts/build-data.mjs   transformation de l'open data
 src/data.ts              types, chargement des données, calculs de présence, géocodage
-src/pages/               MonDepute, Depute, Scrutins, Scrutin, Presence
+scripts/textes.mjs       rattachement des scrutins aux textes et aux amendements, parcours des textes
+src/lecture.ts           lecture d'un scrutin : nature du vote, texte cité, ce que change le résultat
+src/pages/               MonDepute, Depute, Scrutins, Scrutin, Texte, Presence, Carte
 src/components.tsx       barres de vote, jauges, cartes
 ```
 
@@ -110,7 +128,7 @@ Prérequis : Node.js 22 ou plus récent.
 
 ```bash
 npm install
-npm run data      # télécharge l'open data (~45 Mo) et génère public/data
+npm run data      # télécharge l'open data (~400 Mo, dont 350 Mo d'amendements) et génère public/data
 npm run dev       # http://localhost:5173
 ```
 
