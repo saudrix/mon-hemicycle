@@ -52,7 +52,7 @@ export function TextePage() {
                   {etape}
                   {date && ` · ${formatDate(date)}`}
                 </span>
-                {issue && <small>{issue}</small>}
+                {issue && <small data-issue={issue}>{issue}</small>}
               </li>
             ))}
           </ol>

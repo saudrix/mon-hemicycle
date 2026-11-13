@@ -513,3 +513,109 @@ a.mon-vote {
   border: var(--trait);
   font-size: 0.9rem;
 }
+
+/* -----------------------------------------------------------------------
+   11. LE PARCOURS D'UN TEXTE
+   Adoptée, rejetée, désaccord : ce sont des issues de VOTE, les couleurs de
+   vote sont donc à leur place. L'issue est lue depuis l'attribut, le texte
+   affiché n'est pas touché.
+   -------------------------------------------------------------------- */
+
+.parcours {
+  border-left: 2.5px solid var(--encre);
+  gap: 1.05rem;
+}
+
+.parcours li::before {
+  background: var(--blanc);
+  border: 2.5px solid var(--encre);
+}
+
+.parcours li b {
+  font-family: var(--titres);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.parcours li span {
+  color: var(--texte-second);
+}
+
+.parcours li small {
+  justify-self: start;
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.62rem;
+  border-radius: var(--r-puce);
+  background: var(--gris-illu);
+  color: var(--texte-second);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.parcours li small[data-issue*='adopt' i] {
+  background: var(--pour-fond);
+  color: var(--pour-encre);
+}
+
+.parcours li small[data-issue*='rejet' i] {
+  background: var(--contre-fond);
+  color: var(--contre-encre);
+}
+
+.parcours li small[data-issue*='saccord' i] {
+  background: var(--abstention-fond);
+  color: var(--abstention-encre);
+}
+
+/* La pastille de l'étape reprend la couleur de son issue. */
+.parcours li:has(small[data-issue*='adopt' i])::before {
+  border-color: var(--pour-encre);
+}
+
+.parcours li:has(small[data-issue*='rejet' i])::before {
+  border-color: var(--contre-encre);
+}
+
+.parcours li:has(small[data-issue*='saccord' i])::before {
+  border-color: var(--abstention-encre);
+}
+
+/* La dernière étape : le texte est au bout de sa route. */
+.parcours li.actuelle::before {
+  background: var(--jaune);
+  border-color: var(--encre);
+}
+
+/* -----------------------------------------------------------------------
+   12. LA LÉGENDE DE LA CARTE
+   Douze groupes : la légende doit tenir en deux rangées pour que la carte
+   reste au-dessus de la ligne de flottaison.
+   -------------------------------------------------------------------- */
+
+.legende-carte {
+  gap: 5px;
+}
+
+.legende-carte button {
+  padding: 0.3rem 0.6rem 0.3rem 0.45rem;
+  gap: 0.35rem;
+  border-radius: var(--r-puce);
+  border: 0;
+  background: var(--creme);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.legende-carte button[aria-pressed='true'] {
+  background: var(--jaune);
+  box-shadow: inset 0 0 0 2px var(--encre);
+}
+
+.legende-carte button i {
+  width: 9px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.4px solid var(--encre);
+  box-sizing: border-box;
+}
