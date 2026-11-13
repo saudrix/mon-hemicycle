@@ -44,7 +44,7 @@ export function TextePage() {
       {texte && texte.e.length > 0 && (
         <section>
           <h2>Parcours du texte</h2>
-          <ol className="frise">
+          <ol className="parcours">
             {texte.e.map(([lieu, etape, date, issue], i) => (
               <li key={i} className={i === texte.e.length - 1 ? 'actuelle' : undefined}>
                 <b>{lieu}</b>
