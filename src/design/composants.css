@@ -1,0 +1,445 @@
+/* =============================================================================
+   Encre et couleur — les composants
+   =============================================================================
+   Les objets du système, et le branchement des classes existantes de
+   l'application dessus. Aucune donnée affichée n'est retirée : on ne change
+   que la forme, l'ordre et la hiérarchie.
+   ========================================================================== */
+
+/* -----------------------------------------------------------------------
+   1. LE BANDEAU DE MARQUE
+   Une seule couleur pleine par écran. Le jaune pour la marque, le vert ou le
+   corail pour un verdict. Le reste de l'écran est blanc, crème et encre.
+   -------------------------------------------------------------------- */
+
+.barre-titre {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(env(safe-area-inset-top) + 0.85rem) 20px 1rem;
+  background: var(--jaune);
+  color: var(--encre);
+  border-radius: var(--r-bandeau);
+  font-family: var(--titres);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.015em;
+}
+
+.barre-titre .logo img {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+/* -----------------------------------------------------------------------
+   2. LES SURFACES
+   Crème : ce qui se range. Cerné d'encre : ce qui se clique ou ce qui compte.
+   En V2 une couche se signale par un TRAIT, jamais par une ombre.
+   -------------------------------------------------------------------- */
+
+.carte-scrutin,
+.ligne-vote,
+.ligne-commission,
+.ligne-groupe,
+.repartition li,
+.stat,
+.notifications,
+.resultat,
+.adresse-choisie,
+.carte-depute,
+.suggestions,
+.carte-texte,
+.ligne-amendement,
+.fiche-carte,
+.accueil-etape {
+  background: var(--creme);
+  border: 0;
+  border-radius: var(--r-carte);
+}
+
+/* Ce qui mène ailleurs porte le trait d'encre. */
+a.carte-scrutin,
+a.ligne-vote,
+a.carte-depute,
+a.carte-texte,
+a.mon-vote {
+  background: var(--creme);
+  border: var(--trait);
+}
+
+.suggestions {
+  border: var(--trait);
+  box-shadow: none;
+}
+
+.suggestions button {
+  border-radius: 14px;
+}
+
+.suggestions button:hover {
+  background: var(--gris-illu);
+}
+
+/* -----------------------------------------------------------------------
+   3. LES PILULES ET LES FILTRES
+   L'état actif est jaune cerné d'encre : il ne repose jamais sur la seule
+   couleur, le trait le porte aussi.
+   -------------------------------------------------------------------- */
+
+.filtres button {
+  flex: none;
+  padding: 0.52rem 0.95rem;
+  border-radius: var(--r-puce);
+  border: 2px solid var(--trait-leger);
+  background: var(--blanc);
+  color: var(--texte-second);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.filtres button[aria-pressed='true'] {
+  background: var(--jaune);
+  border-color: var(--encre);
+  color: var(--encre);
+  font-weight: 700;
+}
+
+.principal,
+.secondaire {
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--r-puce);
+  font-family: var(--titres);
+  font-weight: 700;
+  border: 2px solid var(--encre);
+}
+
+.principal {
+  background: var(--jaune);
+  color: var(--encre);
+}
+
+.secondaire {
+  background: var(--blanc);
+  color: var(--encre);
+}
+
+/* -----------------------------------------------------------------------
+   4. LES BADGES DE POSITION
+   Les paires sont calculées : 5,79:1 · 4,85:1 · 5,94:1. Le blanc sur le vert
+   ou sur le corail tombait à 2,2:1, il ne revient pas.
+   -------------------------------------------------------------------- */
+
+.position {
+  padding: 0.22rem 0.62rem;
+  border-radius: var(--r-puce);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.position-p {
+  background: var(--pour-fond);
+  color: var(--pour-encre);
+}
+
+.position-c {
+  background: var(--contre-fond);
+  color: var(--contre-encre);
+}
+
+.position-a {
+  background: var(--abstention-fond);
+  color: var(--abstention-encre);
+}
+
+.position-n,
+.position-absent {
+  background: var(--gris-illu);
+  color: var(--texte-second);
+}
+
+.t-p { color: var(--pour-encre); }
+.t-c { color: var(--contre-encre); }
+.t-a { color: var(--abstention-encre); }
+
+.sort.adopte { color: var(--pour-encre); }
+.sort.rejete { color: var(--contre-encre); }
+.resultat.adopte > strong { color: var(--pour-encre); }
+.resultat.rejete > strong { color: var(--contre-encre); }
+
+/* L'étiquette de nature : encre pleine, crème dessus. */
+.badge {
+  margin-left: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-puce);
+  background: var(--encre);
+  color: var(--creme);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.badge.direct {
+  background: var(--contre);
+  color: var(--encre);
+}
+
+/* -----------------------------------------------------------------------
+   5. LES CHIFFRES
+   Jamais un chiffre seul : un pourcentage sort avec sa médiane ou son total.
+   Le chiffre est en Outfit, l'étiquette en Inter, le détail en gris calculé.
+   -------------------------------------------------------------------- */
+
+.stat {
+  padding: 0.95rem 1rem;
+  gap: 0.15rem;
+}
+
+.stat-valeur,
+.synthese-valeur,
+.carte-taux,
+.resultat > strong,
+.resultat-chiffres b {
+  font-family: var(--titres);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stat-valeur {
+  font-size: 1.75rem;
+  line-height: 1.05;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.stat-detail {
+  font-size: 0.75rem;
+  color: var(--texte-second);
+}
+
+.synthese {
+  gap: 1rem;
+  padding: 1.05rem 1.15rem;
+  border-radius: var(--r-section);
+  background: var(--encre);
+  color: var(--creme);
+}
+
+.synthese small {
+  opacity: 1;
+  color: var(--texte-sur-encre);
+}
+
+/* -----------------------------------------------------------------------
+   6. LES BARRES ET LES JAUGES
+   -------------------------------------------------------------------- */
+
+.barre {
+  height: 11px;
+  border-radius: 6px;
+  background: var(--gris-illu);
+}
+
+.b-p { background: var(--pour); }
+.b-c { background: var(--contre); }
+.b-a { background: var(--abstention); }
+.b-n { background: var(--absent); }
+.b-vide { background: var(--gris-illu); }
+
+.jauge {
+  height: 9px;
+  border-radius: 6px;
+  background: var(--gris-illu);
+}
+
+/* La présence est une mesure, pas un vote : elle est violette, jamais verte. */
+.jauge span {
+  background: var(--commission);
+}
+
+.h-vote { background: var(--seance); }
+.h-com { background: var(--commission); }
+
+.histo-barres {
+  background: var(--creme);
+  border-radius: 8px;
+}
+
+.histo-col.hors .histo-barres {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--trait-leger) 0 1.5px,
+    transparent 1.5px 7px
+  );
+}
+
+.histo small {
+  font-size: 0.66rem;
+  color: var(--texte-second);
+}
+
+.frise span {
+  background: var(--commission);
+  opacity: 1;
+}
+
+.frise button:hover span {
+  background: var(--commission-encre);
+}
+
+/* -----------------------------------------------------------------------
+   7. LES ONGLETS ET LA BARRE BASSE
+   L'onglet actif porte la pastille jaune : la barre dit où l'on est avant de
+   dire où aller.
+   -------------------------------------------------------------------- */
+
+.onglets {
+  border-bottom: 0;
+  gap: 0.45rem;
+  margin: 1.4rem 0 1rem;
+}
+
+.onglets button {
+  flex: 1;
+  padding: 0.62rem 0.5rem;
+  border: 2px solid var(--trait-leger);
+  border-radius: var(--r-puce);
+  background: var(--blanc);
+  color: var(--texte-second);
+  font-family: var(--titres);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.onglets button[aria-selected='true'] {
+  background: var(--jaune);
+  border-color: var(--encre);
+  color: var(--encre);
+}
+
+.onglets-bas {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  width: min(680px, calc(100% - 32px));
+  height: auto;
+  margin: 0 auto calc(env(safe-area-inset-bottom) + 14px);
+  padding: 7px;
+  background: var(--encre);
+  border-radius: var(--r-section);
+  border-top: 0;
+  backdrop-filter: none;
+}
+
+.onglets-bas a {
+  min-height: 48px;
+  border-radius: calc(var(--r-section) - 7px);
+  color: var(--texte-sur-encre);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.onglets-bas a.active {
+  background: var(--jaune);
+  color: var(--encre);
+  font-weight: 700;
+}
+
+.onglets-bas svg {
+  width: 21px;
+  height: 21px;
+}
+
+/* -----------------------------------------------------------------------
+   8. LES REPÈRES
+   L'annotation manuscrite ne porte jamais une donnée, seulement un repère.
+   -------------------------------------------------------------------- */
+
+.manuscrit {
+  font-family: var(--manuscrit);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.surtitre {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--texte-second);
+}
+
+.pastille i,
+.legende i {
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.4px solid var(--encre);
+  box-sizing: border-box;
+}
+
+.aide summary,
+.choix-manuel summary {
+  color: var(--encre);
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------
+   9. LA FICHE D'UN DÉPUTÉ
+   La photo officielle est un rectangle vertical à coins arrondis, jamais un
+   rond : c'est le format des portraits, et il tient mieux un visage.
+   -------------------------------------------------------------------- */
+
+.fiche-entete {
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--r-section);
+  background: var(--jaune);
+  border: 0;
+}
+
+.fiche-entete img {
+  width: 76px;
+  height: 96px;
+  border-radius: 18px;
+  border: 2.6px solid var(--encre);
+  background: var(--creme);
+}
+
+.fiche-entete h1 {
+  font-size: 1.55rem;
+  line-height: 1.02;
+}
+
+.fiche-entete p {
+  color: var(--texte-sur-marque);
+  font-size: 0.86rem;
+}
+
+.fiche-entete .pastille {
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--r-puce);
+  background: var(--blanc);
+  border: 2px solid var(--encre);
+  font-size: 0.76rem;
+}
+
+.adresse-choisie {
+  padding: 0.7rem 0.95rem;
+  border: var(--trait);
+  background: var(--blanc);
+  font-size: 0.86rem;
+}
