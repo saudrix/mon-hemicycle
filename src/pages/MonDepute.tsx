@@ -66,7 +66,7 @@ export function MonDepute() {
   );
 }
 
-function RechercheAdresse({ meta, onChoix }: { meta: Meta; onChoix: (c: Choix) => void }) {
+export function RechercheAdresse({ meta, onChoix }: { meta: Meta; onChoix: (c: Choix) => void }) {
   const [q, setQ] = useState('');
   const [resultats, setResultats] = useState<Adresse[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -116,7 +116,7 @@ function RechercheAdresse({ meta, onChoix }: { meta: Meta; onChoix: (c: Choix) =
   );
 }
 
-function ChoixManuel({ meta, onChoix }: { meta: Meta; onChoix: (c: Choix) => void }) {
+export function ChoixManuel({ meta, onChoix }: { meta: Meta; onChoix: (c: Choix) => void }) {
   const [dep, setDep] = useState('');
   const departements = useMemo(() => {
     const m = new Map<string, string>();

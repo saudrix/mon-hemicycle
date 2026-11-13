@@ -13,6 +13,10 @@ l'ajoute à l'écran d'accueil, c'est tout.
 
 ## Fonctionnalités
 
+- **Accueil** : au premier lancement, trois écrans présentent l'application, retrouvent son député à partir de
+  son adresse et proposent les notifications. Chaque étape peut être passée, et la présentation se revoit depuis
+  le pied de page.
+
 - **Mon député** : à partir de son adresse, retrouver sa circonscription et la personne qui y siège ; voir ses votes,
   sa participation aux scrutins, sa présence en commission mois par mois, et la part de ses votes conformes à la
   position de son groupe.

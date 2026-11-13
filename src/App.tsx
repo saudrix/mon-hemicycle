@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Accueil, accueilAFaire } from './Accueil';
 import { getMeta, formatDate } from './data';
 import { useAsync } from './hooks';
 import { Carte } from './pages/Carte';
@@ -12,6 +13,14 @@ import { TextePage } from './pages/Texte';
 
 // HashRouter : les URL restent valides sur un hébergement statique (GitHub Pages) sans réécriture serveur.
 export function App() {
+  const [accueil, setAccueil] = useState(accueilAFaire);
+  if (accueil) {
+    return (
+      <HashRouter>
+        <Accueil onFin={() => setAccueil(false)} />
+      </HashRouter>
+    );
+  }
   return (
     <HashRouter>
       <HautDePage />
@@ -31,7 +40,7 @@ export function App() {
           <Route path="/carte" element={<Carte />} />
           <Route path="/deputes/:id" element={<DeputePage />} />
         </Routes>
-        <Source />
+        <Source onRevoir={() => setAccueil(true)} />
       </main>
       <nav className="onglets-bas" aria-label="Navigation principale">
         <NavLink to="/" end>
@@ -71,13 +80,16 @@ function HautDePage() {
   return null;
 }
 
-function Source() {
+function Source({ onRevoir }: { onRevoir: () => void }) {
   const meta = useAsync(getMeta, []);
   return (
     <footer className="source">
       Données : open data de l'Assemblée nationale (Licence Ouverte)
       {meta.data?.dernierScrutin && <>, à jour du {formatDate(meta.data.dernierScrutin)}</>}. Application indépendante,
-      non officielle.
+      non officielle.{' '}
+      <button className="lien" onClick={onRevoir}>
+        Revoir la présentation
+      </button>
     </footer>
   );
 }
