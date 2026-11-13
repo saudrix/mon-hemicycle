@@ -20,7 +20,7 @@ l'ajoute à l'écran d'accueil, c'est tout.
   résultat pour / contre / abstention, répartition par groupe politique et liste nominative des votants.
 - **En direct et notifications** : les scrutins apparaissent dans l'application quelques minutes après le vote,
   et l'on peut recevoir une notification à chaque nouveau scrutin, ou seulement pour les votes sur l'ensemble d'un
-  texte et les motions de censure.
+  texte et les motions de censure ; en option, une notification à chaque vote de son député, avec sa position.
 - **Carte de France** : chaque circonscription colorée selon le groupe de son député, avec la métropole, un zoom
   sur Paris et la petite couronne, l'outre-mer et les Français de l'étranger ; ou selon le vote de chaque député pour
   un scrutin donné.
@@ -82,7 +82,8 @@ site AN ───────► worker/ (Cloudflare, toutes les 5 min) ── /
 L'open data n'est régénéré qu'une fois par nuit, alors que le site de l'Assemblée publie chaque scrutin quelques
 minutes après le vote. Le Worker lit donc la page des 50 derniers scrutins toutes les 5 minutes (environ 300
 requêtes par jour), garde les nouveautés et prévient les abonnés. Chaque nuit, la reconstruction complète depuis
-l'open data prend le relais avec le détail par groupe et par député.
+l'open data prend le relais avec le détail par groupe et par député. Si un abonné suit son député, le Worker lit
+aussi la page de chaque nouveau scrutin pour connaître la position de chaque député (au plus 15 pages par passage).
 
 - **Pas de backend.** Un script Node télécharge l'open data, le transforme en fichiers JSON compacts (index des
   scrutins, détail par paquets de 250, un fichier par député, agrégats de présence par jour, contours par
@@ -91,7 +92,8 @@ l'open data prend le relais avec le détail par groupe et par député.
   données sont mises en cache au fil de la consultation.
 - **Notifications** : un [Cloudflare Worker](worker/) envoie les notifications Web Push (VAPID et chiffrement
   aes128gcm implémentés avec la Web Crypto API, sans dépendance). Les abonnements sont stockés dans Workers KV :
-  seuls l'adresse technique du service de push du navigateur et le type d'alerte choisi sont conservés.
+  seuls l'adresse technique du service de push du navigateur, le type d'alerte choisi et, le cas échéant, le député
+  suivi sont conservés.
 - **Mise à jour** : le workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) reconstruit les données
   et redéploie chaque matin, et à chaque push sur `main`.
 
@@ -165,7 +167,6 @@ En local, `npm run dev` dans `worker/` démarre le Worker sur le port 8787 (clé
 ## Feuille de route
 
 - Résumés en langage clair des scrutins et des dossiers législatifs
-- Notification du vote de mon député
 - Suivi de plusieurs députés, comparaison
 - Interventions en séance et questions écrites
 - Notifications natives (APNs, FCM) dans les applications iOS et Android

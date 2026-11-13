@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import { createECDH, randomBytes, createPublicKey, verify } from 'node:crypto';
 import ece from 'http_ece';
-import { URL_LISTE, lireListe } from '../src/an.ts';
+import { URL_LISTE, lireListe, lireVotes, urlScrutin } from '../src/an.ts';
 import { b64url, chiffrer } from '../src/webpush.ts';
 
 // 1. Page réelle
@@ -20,6 +20,15 @@ for (const s of liste) {
 }
 console.log(`✓ ${liste.length} scrutins lus, le dernier :`, liste[0]);
 console.log(`  dont ${liste.filter((s) => s.important).length} importants :`, liste.filter((s) => s.important).map((s) => s.num).join(', ') || 'aucun');
+
+// Vote de chaque député : le décompte doit retomber sur la synthèse du scrutin.
+const recent = liste.find((s) => s.pour != null);
+const votes = lireVotes(await (await fetch(urlScrutin(recent.num))).text());
+const compte = (p) => Object.values(votes).filter((x) => x === p).length;
+assert.equal(compte('pour'), recent.pour, 'votes pour');
+assert.equal(compte('contre'), recent.contre, 'votes contre');
+assert.equal(compte('abstention'), recent.abs, 'abstentions');
+console.log(`✓ scrutin n° ${recent.num} : ${Object.keys(votes).length} votes nominatifs, conformes à la synthèse`);
 
 // 2. Chiffrement : on joue le rôle du navigateur abonné
 const navigateur = createECDH('prime256v1');

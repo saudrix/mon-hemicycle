@@ -290,6 +290,9 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .notifications .filtres { margin: 0; }
 .notifications small { color: var(--doux); font-size: 0.75rem; }
 .notifications-actions { display: flex; align-items: center; gap: 1rem; }
+.notifications .case-a-cocher { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; }
+.notifications .case-a-cocher input { margin-top: 0.15rem; accent-color: var(--accent); }
+.notifications .case-a-cocher input:disabled + span { color: var(--doux); }
 .principal, .secondaire { padding: 0.6rem 1.1rem; border-radius: 999px; font-weight: 650; border: 1px solid var(--marine); }
 .principal { background: var(--marine); color: #fff; }
 .secondaire { background: none; color: var(--texte); border-color: var(--ligne); }

@@ -3,7 +3,7 @@
 // - garde les derniers scrutins pour l'application (qui ne reçoit l'open data qu'une fois par nuit) ;
 // - envoie une notification push aux téléphones abonnés.
 
-import { type ScrutinDirect, URL_LISTE, lireListe } from './an';
+import { type Position, type ScrutinDirect, URL_LISTE, lireListe, lireVotes, urlScrutin } from './an';
 import { type Abonnement, type Vapid, envoyer } from './webpush';
 
 type Env = {
@@ -20,11 +20,16 @@ type Env = {
 
 /** tous : chaque scrutin ; importants : votes sur l'ensemble d'un texte et motions de censure */
 type Mode = 'tous' | 'importants';
-type Inscription = { abonnement: Abonnement; mode: Mode; cree: string };
+/** député suivi : identifiant de l'Assemblée (PA…) et nom affiché dans la notification */
+type DeputeSuivi = { id: string; nom: string };
+type Inscription = { abonnement: Abonnement; mode: Mode; depute?: DeputeSuivi; cree: string };
 type Etat = { dernier: number; recents: ScrutinDirect[]; verifieLe: string };
 
 const ETAT = 'etat';
 const MAX_RECENTS = 150;
+/** pages de scrutin lues au plus par passage (limite de sous-requêtes du Worker) */
+const MAX_PAGES_VOTES = 15;
+const AGENT = 'MonHemicycle/0.1 (+https://github.com/saudrix/mon-hemicycle)';
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
@@ -50,11 +55,18 @@ export default {
 
       if (pathname === '/api/abonnement') {
         if (!cors['Access-Control-Allow-Origin']) return json({ erreur: 'Origine non autorisée' }, 403);
-        const corps = (await req.json()) as { abonnement?: Abonnement; mode?: Mode; endpoint?: string };
+        const corps = (await req.json()) as { abonnement?: Abonnement; mode?: Mode; depute?: DeputeSuivi; endpoint?: string };
         if (req.method === 'POST') {
           const a = corps.abonnement;
           if (!a?.endpoint?.startsWith('https://') || !a.keys?.p256dh || !a.keys?.auth) return json({ erreur: 'Abonnement invalide' }, 400);
-          const inscription: Inscription = { abonnement: a, mode: corps.mode === 'importants' ? 'importants' : 'tous', cree: new Date().toISOString() };
+          const d = corps.depute;
+          const depute = d && /^PA\d+$/.test(d.id) && typeof d.nom === 'string' ? { id: d.id, nom: d.nom.slice(0, 80) } : undefined;
+          const inscription: Inscription = {
+            abonnement: a,
+            mode: corps.mode === 'importants' ? 'importants' : 'tous',
+            depute,
+            cree: new Date().toISOString(),
+          };
           await env.DONNEES.put(await cle(a.endpoint), JSON.stringify(inscription));
           return json({ ok: true });
         }
@@ -91,7 +103,7 @@ export default {
 };
 
 async function veille(env: Env) {
-  const res = await fetch(URL_LISTE, { headers: { 'User-Agent': 'MonHemicycle/0.1 (+https://github.com)' } });
+  const res = await fetch(URL_LISTE, { headers: { 'User-Agent': AGENT } });
   if (!res.ok) throw new Error(`Liste des scrutins : HTTP ${res.status}`);
   const liste = lireListe(await res.text());
   if (!liste.length) throw new Error('Aucun scrutin lu : la page a peut-être changé de forme');
@@ -112,37 +124,87 @@ async function veille(env: Env) {
 }
 
 async function notifier(env: Env, nouveaux: ScrutinDirect[]) {
-  const importants = nouveaux.filter((s) => s.important);
-  const cles = await toutesLesCles(env);
+  const inscriptions = (
+    await Promise.all(
+      (await toutesLesCles(env)).map(async (k) => {
+        const brut = await env.DONNEES.get(k);
+        return brut ? { k, ...(JSON.parse(brut) as Inscription) } : null;
+      }),
+    )
+  ).filter((x) => x !== null);
+
+  // Le vote de chaque député n'est lu que si quelqu'un suit un député.
+  const votes = inscriptions.some((i) => i.depute) ? await lireVotesDe(nouveaux) : new Map<number, Record<string, Position>>();
   const v = vapid(env);
+
   await Promise.all(
-    cles.map(async (k) => {
-      const brut = await env.DONNEES.get(k);
-      if (!brut) return;
-      const { abonnement, mode } = JSON.parse(brut) as Inscription;
-      const selection = mode === 'importants' ? importants : nouveaux;
+    inscriptions.map(async ({ k, abonnement, mode, depute }) => {
+      const positions = new Map<number, Position>();
+      if (depute) {
+        for (const s of nouveaux) {
+          const p = votes.get(s.num)?.[depute.id];
+          if (p) positions.set(s.num, p);
+        }
+      }
+      // Scrutins choisis (tous ou importants), plus ceux où le député suivi a voté pour, contre ou abstention.
+      const selection = nouveaux.filter(
+        (s) => mode === 'tous' || s.important || (positions.has(s.num) && positions.get(s.num) !== 'nv'),
+      );
       if (!selection.length) return;
-      const statut = await envoyer(abonnement, message(selection, env), v);
+      const statut = await envoyer(abonnement, message(selection, env, depute, positions), v);
       if (statut === 404 || statut === 410) await env.DONNEES.delete(k);
     }),
   );
 }
 
-function message(scrutins: ScrutinDirect[], env: Env) {
+/** Vote de chaque député pour les nouveaux scrutins (les plus récents d'abord si la liste est longue). */
+async function lireVotesDe(scrutins: ScrutinDirect[]) {
+  const votes = new Map<number, Record<string, Position>>();
+  const aLire = [...scrutins].sort((a, b) => b.num - a.num).slice(0, MAX_PAGES_VOTES);
+  await Promise.all(
+    aLire.map(async (s) => {
+      try {
+        const res = await fetch(urlScrutin(s.num), { headers: { 'User-Agent': AGENT } });
+        if (res.ok) votes.set(s.num, lireVotes(await res.text()));
+      } catch {
+        // page indisponible : la notification partira sans le vote du député
+      }
+    }),
+  );
+  return votes;
+}
+
+const LIBELLES: Record<Position, string> = { pour: 'pour', contre: 'contre', abstention: 'abstention', nv: 'non-votant' };
+
+function message(scrutins: ScrutinDirect[], env: Env, depute?: DeputeSuivi, positions = new Map<number, Position>()) {
   const dernier = scrutins.at(-1)!;
   const resultat = (s: ScrutinDirect) =>
     `${s.adopte ? 'Adopté' : 'Rejeté'}${s.pour != null && s.contre != null ? ` (${s.pour} pour, ${s.contre} contre)` : ''}`;
+  const aVote = (p: Position) =>
+    p === 'abstention' ? 'a choisi l’abstention' : p === 'nv' ? 'n’a pas voté (non-votant)' : `a voté ${p}`;
+
   if (scrutins.length === 1) {
+    const p = positions.get(dernier.num);
     return {
-      title: `${resultat(dernier)} · scrutin n° ${dernier.num}`,
-      body: dernier.titre,
+      title: depute && p ? `${depute.nom} ${aVote(p)} · ${dernier.adopte ? 'adopté' : 'rejeté'}` : `${resultat(dernier)} · scrutin n° ${dernier.num}`,
+      body: depute && p ? `${dernier.titre}. ${resultat(dernier)}.` : dernier.titre,
       url: `${env.URL_APP}#/scrutins/${dernier.num}`,
       tag: 'scrutins',
     };
   }
+
+  // Plusieurs scrutins d'un coup : un résumé des positions du député suivi, puis le dernier scrutin.
+  const compte = new Map<Position, number>();
+  for (const s of scrutins) {
+    const p = positions.get(s.num);
+    if (p) compte.set(p, (compte.get(p) ?? 0) + 1);
+  }
+  const resume = depute && compte.size
+    ? `${depute.nom} : ${[...compte].map(([p, n]) => `${n} ${LIBELLES[p]}`).join(', ')}. `
+    : '';
   return {
     title: `${scrutins.length} nouveaux scrutins`,
-    body: `Dernier : ${dernier.titre} ${resultat(dernier).toLowerCase()}.`,
+    body: `${resume}Dernier : ${dernier.titre}, ${resultat(dernier).toLowerCase()}.`,
     url: `${env.URL_APP}#/scrutins`,
     tag: 'scrutins',
   };

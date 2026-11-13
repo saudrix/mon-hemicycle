@@ -265,6 +265,11 @@ export function lireChoix(): Choix | null {
   }
 }
 
+/** Député actuellement en mandat dans la circonscription choisie. */
+export function deputeDuChoix(meta: Meta, choix: Choix | null) {
+  return (choix && meta.deputes.find((d) => d.actif && d.depNum === choix.depNum && d.circo === choix.circo)) || null;
+}
+
 export function enregistrerChoix(c: Choix | null) {
   try {
     if (c) localStorage.setItem(CLE, JSON.stringify(c));

@@ -3,15 +3,19 @@
 
 export const API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
+import type { Depute } from './data';
+
 export type Mode = 'tous' | 'importants';
 export type EtatPush =
   | { statut: 'indisponible'; raison: string }
   | { statut: 'a-installer' }
   | { statut: 'refuse' }
   | { statut: 'inactif' }
-  | { statut: 'actif'; mode: Mode };
+  | { statut: 'actif'; mode: Mode; suivi: boolean };
 
 const CLE_MODE = 'mon-hemicycle:notifications';
+/** « 1 » si l'on veut aussi être prévenu de chaque vote de son député */
+const CLE_SUIVI = 'mon-hemicycle:notifications-depute';
 
 const estIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const estInstallee = () => matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
@@ -31,7 +35,7 @@ export async function etatPush(): Promise<EtatPush> {
   const reg = await navigator.serviceWorker.getRegistration();
   const abonnement = await reg?.pushManager.getSubscription();
   if (!abonnement) return { statut: 'inactif' };
-  return { statut: 'actif', mode: (localStorage.getItem(CLE_MODE) as Mode) || 'tous' };
+  return { statut: 'actif', mode: (localStorage.getItem(CLE_MODE) as Mode) || 'tous', suivi: localStorage.getItem(CLE_SUIVI) === '1' };
 }
 
 async function appel(chemin: string, methode: string, corps: unknown) {
@@ -44,16 +48,30 @@ async function appel(chemin: string, methode: string, corps: unknown) {
   return res.json();
 }
 
-export async function activer(mode: Mode) {
+const suiviDe = (d: Depute | null) => (d ? { id: d.id, nom: `${d.prenom} ${d.nom}` } : undefined);
+
+/** Abonne le téléphone ; avec un député, prévient aussi de chacun de ses votes. */
+export async function activer(mode: Mode, depute: Depute | null) {
   if ((await Notification.requestPermission()) !== 'granted') throw new Error('Notifications refusées.');
   const reg = await navigator.serviceWorker.ready;
   const { vapidPublicKey } = await (await fetch(`${API}/api/config`)).json();
   const abonnement =
     (await reg.pushManager.getSubscription()) ??
     (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64url(vapidPublicKey) }));
-  await appel('/api/abonnement', 'POST', { abonnement: abonnement.toJSON(), mode });
+  await appel('/api/abonnement', 'POST', { abonnement: abonnement.toJSON(), mode, depute: suiviDe(depute) });
   localStorage.setItem(CLE_MODE, mode);
+  if (depute) localStorage.setItem(CLE_SUIVI, '1');
+  else localStorage.removeItem(CLE_SUIVI);
   return abonnement;
+}
+
+/** Après un changement de circonscription : met à jour le député suivi, si l'option est active. */
+export async function suivreDepute(depute: Depute | null) {
+  const e = await etatPush();
+  if (e.statut !== 'actif' || !e.suivi) return;
+  const reg = await navigator.serviceWorker.ready;
+  const abonnement = await reg.pushManager.getSubscription();
+  if (abonnement) await appel('/api/abonnement', 'POST', { abonnement: abonnement.toJSON(), mode: e.mode, depute: suiviDe(depute) });
 }
 
 export async function desactiver() {
@@ -64,6 +82,7 @@ export async function desactiver() {
     await abonnement.unsubscribe();
   }
   localStorage.removeItem(CLE_MODE);
+  localStorage.removeItem(CLE_SUIVI);
 }
 
 export async function essai() {

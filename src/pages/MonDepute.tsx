@@ -5,12 +5,14 @@ import {
   type Choix,
   type Meta,
   chercherAdresses,
+  deputeDuChoix,
   enregistrerChoix,
   getMeta,
   lireChoix,
   trouverCirconscription,
 } from '../data';
 import { useAsync } from '../hooks';
+import { suivreDepute } from '../push';
 import { DeputeVue } from './Depute';
 
 export function MonDepute() {
@@ -22,9 +24,11 @@ export function MonDepute() {
   const choisir = (c: Choix | null) => {
     enregistrerChoix(c);
     setChoix(c);
+    // Les notifications « mon député a voté » suivent le nouveau député.
+    if (c) suivreDepute(deputeDuChoix(meta.data!, c)).catch(() => {});
   };
 
-  const depute = choix && meta.data.deputes.find((d) => d.actif && d.depNum === choix.depNum && d.circo === choix.circo);
+  const depute = deputeDuChoix(meta.data, choix);
 
   if (choix && depute) {
     return (

@@ -1,17 +1,25 @@
 import { useEffect, useState } from 'react';
+import { deputeDuChoix, getMeta, lireChoix } from './data';
+import { useAsync } from './hooks';
 import { type EtatPush, type Mode, activer, desactiver, essai, etatPush } from './push';
 
 /** Encart d'abonnement aux notifications de nouveaux scrutins. */
 export function Notifications() {
   const [etat, setEtat] = useState<EtatPush | null>(null);
   const [mode, setMode] = useState<Mode>('tous');
+  const [suivi, setSuivi] = useState(false);
+  const meta = useAsync(getMeta, []);
+  const depute = meta.data ? deputeDuChoix(meta.data, lireChoix()) : null;
   const [message, setMessage] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
 
   const rafraichir = () =>
     etatPush().then((e) => {
       setEtat(e);
-      if (e.statut === 'actif') setMode(e.mode);
+      if (e.statut === 'actif') {
+        setMode(e.mode);
+        setSuivi(e.suivi);
+      }
     });
   useEffect(() => {
     rafraichir();
@@ -35,7 +43,7 @@ export function Notifications() {
 
   return (
     <section className="notifications">
-      <strong>🔔 Nouveaux scrutins</strong>
+      <strong>🔔 Notifications</strong>
       {etat.statut === 'a-installer' && (
         <p>
           Pour recevoir les notifications sur iPhone, ajoutez d'abord l'application à l'écran d'accueil : bouton
@@ -55,9 +63,30 @@ export function Notifications() {
               Textes et censures
             </button>
           </div>
+          <small>
+            {mode === 'tous'
+              ? 'Une notification à chaque scrutin, regroupée quand plusieurs votes s’enchaînent.'
+              : 'Seulement les votes sur l’ensemble d’un texte et les motions de censure.'}
+          </small>
+          <label className="case-a-cocher">
+            <input type="checkbox" checked={suivi && !!depute} disabled={!depute} onChange={(e) => setSuivi(e.target.checked)} />
+            <span>
+              {depute ? (
+                <>
+                  Et à chaque vote de mon député, {depute.prenom} {depute.nom}
+                </>
+              ) : (
+                'Et à chaque vote de mon député (à choisir d’abord dans l’onglet Mon député)'
+              )}
+            </span>
+          </label>
           <div className="notifications-actions">
-            {etat.statut === 'inactif' || etat.mode !== mode ? (
-              <button className="principal" disabled={occupe} onClick={() => agir(() => activer(mode), 'Notifications activées.')}>
+            {etat.statut === 'inactif' || etat.mode !== mode || etat.suivi !== (suivi && !!depute) ? (
+              <button
+                className="principal"
+                disabled={occupe}
+                onClick={() => agir(() => activer(mode, suivi ? depute : null), 'Notifications enregistrées.')}
+              >
                 {etat.statut === 'actif' ? 'Enregistrer' : 'Me prévenir'}
               </button>
             ) : (
@@ -71,11 +100,6 @@ export function Notifications() {
               </button>
             )}
           </div>
-          <small>
-            {mode === 'tous'
-              ? 'Une notification à chaque scrutin, regroupée quand plusieurs votes s’enchaînent.'
-              : 'Seulement les votes sur l’ensemble d’un texte et les motions de censure.'}
-          </small>
         </>
       )}
       {message && <p className="note">{message}</p>}

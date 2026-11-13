@@ -59,3 +59,25 @@ export function lireListe(html: string): ScrutinDirect[] {
   }
   return res;
 }
+
+// ---------- Vote de chaque député ----------
+
+export type Position = 'pour' | 'contre' | 'abstention' | 'nv';
+
+export const urlScrutin = (num: number) => `https://www.assemblee-nationale.fr/dyn/17/scrutins/${num}`;
+
+const POSITIONS: Record<string, Position> = { pour: 'pour', contre: 'contre', abstention: 'abstention', 'non votant': 'nv' };
+
+/**
+ * Lit la page d'un scrutin : pour chaque groupe, une rubrique par position (« Pour », « Contre »…)
+ * suivie de la liste des députés, chacun identifié par data-acteur-id="PA… - PM…".
+ */
+export function lireVotes(html: string): Record<string, Position> {
+  const votes: Record<string, Position> = {};
+  let courante: Position | undefined;
+  for (const m of html.matchAll(/class="h6 _colored-[a-z]+">\s*([^<]+?)\s*<|data-acteur-id="(PA\d+)/g)) {
+    if (m[1]) courante = POSITIONS[m[1].toLowerCase()];
+    else if (courante) votes[m[2]] = courante;
+  }
+  return votes;
+}
