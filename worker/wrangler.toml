@@ -11,8 +11,8 @@ crons = ["*/5 * * * *"]
 binding = "DONNEES"
 
 [vars]
-VAPID_PUBLIC_KEY = ""
-VAPID_SUBJECT = "https://github.com/"
-ORIGINES = ""
-URL_APP = ""
+VAPID_PUBLIC_KEY = "BGYy92fZaHLNBJbOp2UuJaSZCOTcFNwJUlFuXxqZaL_6PJrOdZIgK75jUGlnz70bx0cfxE2DMfSzh8doXSvNnCY"
+VAPID_SUBJECT = "https://github.com/saudrix/mon-hemicycle"
+ORIGINES = "https://saudrix.github.io"
+URL_APP = "https://saudrix.github.io/mon-hemicycle/"
 # VAPID_PRIVATE_JWK est un secret : npx wrangler secret put VAPID_PRIVATE_JWK
