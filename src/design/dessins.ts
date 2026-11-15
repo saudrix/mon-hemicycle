@@ -104,6 +104,32 @@ export function tick(cx: number, cy: number, R: number, v: number, demi: number)
   );
 }
 
+// --------------------------------------------------------------- La vignette
+
+/**
+ * Une demi-couronne de points pour résumer un vote, lisible à 54 px de large.
+ * `partPour` coupe la couronne : les points de gauche sont des « pour ».
+ */
+export function vignette(partPour: number) {
+  const rangs = 4;
+  const cx = 31;
+  const cy = 31;
+  const pts: { ang: number; x: number; y: number }[] = [];
+  for (let r = 0; r < rangs; r++) {
+    const R = 11 + r * 6.2;
+    const n = 9 + r * 3;
+    for (let j = 0; j < n; j++) {
+      const ang = Math.PI - (j / (n - 1)) * Math.PI;
+      pts.push({ ang, x: cx + R * Math.cos(ang), y: cy - R * Math.sin(ang) * 0.86 });
+    }
+  }
+  pts.sort((a, b) => b.ang - a.ang);
+  const coupe = Math.round(pts.length * Math.min(Math.max(partPour, 0), 1));
+  const d = (liste: typeof pts) =>
+    liste.map((p) => `M${p.x.toFixed(1)} ${(p.y - 1.9).toFixed(1)}a1.9 1.9 0 1 0 0.01 0z`).join('');
+  return { pour: d(pts.slice(0, coupe)), contre: d(pts.slice(coupe)) };
+}
+
 // --------------------------------------------------------------- La médiane
 
 /** Médiane d'une série, en ignorant les valeurs manquantes. */

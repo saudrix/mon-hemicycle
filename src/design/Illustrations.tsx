@@ -5,7 +5,7 @@
 // jauges à médiane, l'histogramme mois par mois, et les illustrations au trait.
 
 import { useMemo } from 'react';
-import { arc, chemin, dome, sieges, tick } from './dessins';
+import { type Point, arc, chemin, dome, sieges, tick, vignette } from './dessins';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -124,6 +124,80 @@ export function BancHemicycle({
   );
 }
 
+// ------------------------------------------------------- La salle, un vote
+
+/**
+ * L'hémicycle entier colorié par le vote de chacun. Les positions inconnues
+ * restent à l'encre pâle : un siège sans donnée n'est pas un absent.
+ */
+export function SalleVotes({
+  total,
+  positions,
+  rang,
+  description,
+  mot = 'lui',
+}: {
+  total: number;
+  /** position de chaque siège, par rang dans la salle */
+  positions: ReadonlyMap<number, 'p' | 'c' | 'a' | 'n'>;
+  rang: number | null;
+  description: string;
+  mot?: string;
+}) {
+  const vue = useMemo(() => {
+    const pts = sieges(total, 13, 54, 168, 175, 136, 0.55);
+    const par = { p: [] as Point[], c: [] as Point[], a: [] as Point[], n: [] as Point[], vide: [] as Point[] };
+    pts.forEach((p, i) => par[positions.get(i) ?? 'vide'].push(p));
+    return {
+      p: chemin(par.p, 3.3),
+      c: chemin(par.c, 3.3),
+      a: chemin(par.a, 3.3),
+      n: chemin(par.n, 3.3),
+      vide: chemin(par.vide, 3.3),
+      siege: rang != null && rang >= 0 && rang < pts.length ? pts[rang] : null,
+    };
+  }, [total, positions, rang]);
+
+  const s = vue.siege;
+  const sens = s && s.x > 175 ? -1 : 1;
+  return (
+    <svg className="banc" viewBox="0 0 350 150" role="img" aria-label={description}>
+      <path d={vue.vide} fill="var(--encre)" opacity="0.18" />
+      <path d={vue.n} fill="var(--absent)" />
+      <path d={vue.a} fill="var(--abstention)" />
+      <path d={vue.c} fill="var(--contre)" />
+      <path d={vue.p} fill="var(--pour)" />
+      {s && (
+        <>
+          <path
+            d={`M${(s.x + 58 * sens).toFixed(1)} ${(s.y - 46).toFixed(1)}C${(s.x + 40 * sens).toFixed(1)} ${(s.y - 40).toFixed(1)} ${(s.x + 30 * sens).toFixed(1)} ${(s.y - 34).toFixed(1)} ${(s.x + 15 * sens).toFixed(1)} ${(s.y - 15).toFixed(1)}`}
+            fill="none"
+            stroke="var(--encre)"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M${(s.x + 23 * sens).toFixed(1)} ${(s.y - 21).toFixed(1)}L${(s.x + 15 * sens).toFixed(1)} ${(s.y - 15).toFixed(1)}L${(s.x + 23 * sens).toFixed(1)} ${(s.y - 11).toFixed(1)}`}
+            fill="none"
+            stroke="var(--encre)"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <text className="banc-mot" x={(s.x + 62 * sens).toFixed(1)} y={(s.y - 46).toFixed(1)} textAnchor={sens === 1 ? 'start' : 'end'}>
+            {mot}
+          </text>
+          <circle cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r="5.6" fill="none" stroke="var(--encre)" strokeWidth="2" />
+        </>
+      )}
+      <g transform="translate(175 143)">
+        <rect x="-29" y="-3" width="58" height="13" rx="5" fill="var(--encre)" />
+        <rect x="-17" y="-13" width="34" height="11" rx="4.5" fill="none" stroke="var(--encre)" strokeWidth="2.4" />
+      </g>
+    </svg>
+  );
+}
+
 // --------------------------------------------------------------- Les jauges
 
 const JX = 75;
@@ -171,6 +245,49 @@ export function JaugeArc({
       {/* Tant que la médiane se calcule, la ligne garde sa place sans rien affirmer. */}
       <p className="jauge-med">{med === undefined ? ' ' : med === null ? 'médiane indisponible' : `médiane ${libelleMediane}`}</p>
     </div>
+  );
+}
+
+// ------------------------------------------------------------- La vignette
+
+/** Le résultat d'un vote en demi-couronne : vert à gauche, corail à droite. */
+export function VignetteVote({ pour, contre }: { pour: number; contre: number }) {
+  const total = pour + contre;
+  const d = useMemo(() => vignette(total ? pour / total : 0.5), [pour, total]);
+  return (
+    <span className="vignette" aria-hidden>
+      <svg viewBox="0 0 62 34">
+        <path d={d.contre} fill="var(--contre)" />
+        <path d={d.pour} fill="var(--pour)" />
+      </svg>
+    </span>
+  );
+}
+
+/** Un nombre de scrutins par jour, la pointe détachée. */
+export function BarresParJour({ jours, description }: { jours: { cle: string; n: number }[]; description: string }) {
+  const max = Math.max(1, ...jours.map((j) => j.n));
+  const pic = jours.reduce((a, b) => (b.n >= a.n ? b : a), jours[0]);
+  const pas = 300 / Math.max(jours.length, 1);
+  const l = Math.min(26, pas - 4);
+  return (
+    <svg className="barres-jour" viewBox="0 0 300 54" role="img" aria-label={description}>
+      {jours.map((j, i) => {
+        const h = Math.max(3, (j.n / max) * 44);
+        const sommet = j === pic;
+        return (
+          <g key={j.cle}>
+            <rect x={(i * pas + (pas - l) / 2).toFixed(1)} y={(50 - h).toFixed(1)} width={l.toFixed(1)} height={h.toFixed(1)} rx="6" fill={sommet ? 'var(--encre)' : 'rgba(255,255,255,0.72)'} />
+            {sommet && (
+              <text className="barre-pic" x={(i * pas + pas / 2).toFixed(1)} y={(50 - h + 14).toFixed(1)} textAnchor="middle">
+                {j.n}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      <path d="M0 50h300" stroke="var(--encre)" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
   );
 }
 

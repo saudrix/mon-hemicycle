@@ -12,28 +12,7 @@
    corail pour un verdict. Le reste de l'écran est blanc, crème et encre.
    -------------------------------------------------------------------- */
 
-.barre-titre {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: calc(env(safe-area-inset-top) + 0.85rem) 20px 1rem;
-  background: var(--jaune);
-  color: var(--encre);
-  border-radius: var(--r-bandeau);
-  font-family: var(--titres);
-  font-weight: 700;
-  font-size: 1.02rem;
-  letter-spacing: -0.015em;
-}
 
-.barre-titre .logo img {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-}
 
 /* -----------------------------------------------------------------------
    2. LES SURFACES
@@ -46,10 +25,8 @@
 .ligne-commission,
 .ligne-groupe,
 .repartition li,
-.stat,
 .notifications,
 .resultat,
-.adresse-choisie,
 .carte-depute,
 .suggestions,
 .carte-texte,
@@ -195,10 +172,6 @@ a.mon-vote {
    Le chiffre est en Outfit, l'étiquette en Inter, le détail en gris calculé.
    -------------------------------------------------------------------- */
 
-.stat {
-  padding: 0.95rem 1rem;
-  gap: 0.15rem;
-}
 
 .stat-valeur,
 .synthese-valeur,
@@ -210,21 +183,8 @@ a.mon-vote {
   letter-spacing: -0.03em;
 }
 
-.stat-valeur {
-  font-size: 1.75rem;
-  line-height: 1.05;
-}
 
-.stat-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
 
-.stat-detail {
-  font-size: 0.75rem;
-  color: var(--texte-second);
-}
 
 .synthese {
   gap: 1rem;
@@ -436,12 +396,6 @@ a.mon-vote {
   font-size: 0.76rem;
 }
 
-.adresse-choisie {
-  padding: 0.7rem 0.95rem;
-  border: var(--trait);
-  background: var(--blanc);
-  font-size: 0.86rem;
-}
 
 /* -----------------------------------------------------------------------
    10. LE VERDICT D'UN SCRUTIN
@@ -856,6 +810,7 @@ a.mon-vote {
 /* Un seul décor, loin du texte, et rien ne s'y lit. */
 .bandeau-decor {
   position: absolute;
+  z-index: 0;
   right: -54px;
   top: 52px;
   width: 116px;
@@ -1273,4 +1228,564 @@ a.mon-vote {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* -----------------------------------------------------------------------
+   20. LE BANDEAU D'UN ÉCRAN
+   Chaque onglet porte son titre dans le jaune : c'est la seule couleur
+   pleine de l'écran, et elle n'est jamais doublée.
+   -------------------------------------------------------------------- */
+
+.bandeau-page,
+.bandeau-retour {
+  margin: 0 -16px;
+  padding: calc(env(safe-area-inset-top) + 1.1rem) 22px 1.15rem;
+}
+
+.bandeau-page .bandeau-decor {
+  top: -22px;
+}
+
+.bandeau-page h1 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 1.94rem;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+}
+
+.bandeau-intro {
+  position: relative;
+  margin: 0.6rem 0 0;
+  max-width: 34ch;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--texte-sur-marque);
+}
+
+.bandeau-retour .bandeau-marque {
+  margin-bottom: 0.85rem;
+}
+
+.bandeau-retour .retour {
+  margin: -8px 0 -8px -6px;
+}
+
+.bandeau-surtitre {
+  position: relative;
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--texte-sur-marque);
+}
+
+.bandeau-retour h1 {
+  position: relative;
+  margin: 0.3rem 0 0;
+  font-size: 1.55rem;
+  line-height: 1.08;
+}
+
+/* Le champ de recherche vit dans le bandeau : blanc, cerné d'encre. */
+.champ-recherche {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0.6rem 1rem;
+  background: var(--blanc);
+  border: 2px solid var(--encre);
+  border-radius: var(--r-puce);
+}
+
+.champ-recherche svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--encre);
+}
+
+.champ-recherche input {
+  flex-grow: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--encre);
+}
+
+.champ-recherche input::placeholder {
+  color: var(--texte-second);
+}
+
+.champ-recherche input:focus-visible {
+  outline: none;
+}
+
+.champ-recherche:focus-within {
+  outline: 2.5px solid var(--encre);
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------
+   21. LES EN-TÊTES DE SECTION
+   -------------------------------------------------------------------- */
+
+.surtitre-ligne {
+  margin: 0.9rem 0 0.55rem;
+}
+
+.surtitre-ligne .surtitre {
+  flex-grow: 1;
+  font-size: 0.62rem;
+  color: var(--texte-second);
+}
+
+.titre-section {
+  margin: 1.1rem 0 0.55rem;
+}
+
+.surtitre-ligne .compte,
+.titre-section .compte {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+.titre-section .compte sup {
+  font-size: 0.6em;
+}
+
+/* Le regroupement : l'onglet choisi est d'encre pleine, pas seulement coloré. */
+.groupement {
+  margin: 0 0 0.5rem;
+}
+
+.groupement button {
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--r-puce);
+  border: 2px solid var(--trait-leger);
+  background: transparent;
+  color: var(--texte-second);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.groupement button[aria-pressed='true'] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--jaune);
+  font-weight: 700;
+}
+
+/* -----------------------------------------------------------------------
+   22. LE TEXTE EN DISCUSSION
+   La seule carte pleine couleur de l'écran. Le corail y dit l'urgence, pas
+   un vote contre : c'est pour ça qu'elle est seule de son espèce.
+   -------------------------------------------------------------------- */
+
+.en-discussion {
+  display: block;
+  border-radius: 26px;
+  background: var(--contre);
+  color: var(--encre);
+  text-decoration: none;
+  padding: 1rem 1.1rem 0.9rem;
+  margin: 0.85rem 0;
+}
+
+.badge-encre {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--encre);
+  color: var(--blanc);
+  padding: 4px 10px;
+  border-radius: var(--r-puce);
+}
+
+.en-discussion h2 {
+  margin: 0.6rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.en-discussion-detail {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texte-sur-marque);
+  font-variant-numeric: tabular-nums;
+}
+
+.barres-jour {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.75rem;
+}
+
+.barre-pic {
+  font-family: var(--titres);
+  font-size: 13px;
+  font-weight: 800;
+  fill: var(--blanc);
+}
+
+.en-discussion-pied {
+  margin: 0.45rem 0 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--texte-sur-marque);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -----------------------------------------------------------------------
+   23. LA CARTE D'UN TEXTE
+   -------------------------------------------------------------------- */
+
+.carte-texte {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 0.9rem;
+}
+
+.vignette {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--blanc);
+}
+
+.vignette svg {
+  width: 54px;
+  height: 30px;
+}
+
+.carte-texte-corps {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.carte-texte .titre {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.carte-texte-verdict {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+}
+
+/* Le verdict porte son fond : la couleur seule ne suffit pas à le dire. */
+.carte-texte-verdict .sort {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: var(--r-puce);
+}
+
+.carte-texte-verdict .sort.adopte {
+  color: var(--pour-encre);
+  background: var(--pour-fond);
+}
+
+.carte-texte-verdict .sort.rejete {
+  color: var(--contre-encre);
+  background: var(--contre-fond);
+}
+
+.carte-texte-verdict .sort.en-cours {
+  color: var(--encre);
+  background: var(--gris-illu);
+}
+
+.carte-texte-verdict .chiffres {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+.carte-texte-verdict .date {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--texte-second);
+  white-space: nowrap;
+}
+
+.carte-texte-pied {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+/* L'étape où en est le texte : une mention, pas un titre. Elle reste sur une
+   ligne et cède la place au reste du pied. */
+.carte-texte-pied .badge {
+  margin-left: auto;
+  max-width: 55%;
+  padding: 3px 8px;
+  background: var(--gris-illu);
+  color: var(--texte-second);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carte-texte-pied > :first-child {
+  white-space: nowrap;
+}
+
+/* Le décor reste un accent de coin, jamais une masse au milieu du bandeau. */
+.bandeau-page .bandeau-decor {
+  right: -70px;
+}
+
+/* -----------------------------------------------------------------------
+   24. LE BANDEAU D'UN VERDICT
+   Le vert et le corail ne disent qu'une chose : le résultat d'un vote.
+   L'encre pleine tient dessus (5,9:1 sur le vert, 5,4:1 sur le corail).
+   -------------------------------------------------------------------- */
+
+.bandeau-verdict {
+  margin: 0 -16px;
+  padding: calc(env(safe-area-inset-top) + 0.9rem) 22px 1.2rem;
+}
+
+.bandeau-verdict.adopte {
+  background: var(--pour);
+}
+
+.bandeau-verdict.rejete {
+  background: var(--contre);
+}
+
+.bandeau-verdict .bandeau-marque {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bandeau-verdict .retour {
+  margin: -8px 0 -8px -6px;
+}
+
+.verdict-repere {
+  flex-grow: 1;
+  min-width: 0;
+  font-family: var(--texte-police);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texte-sur-marque);
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  font-size: 2.3rem;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.verdict small {
+  font-family: var(--texte-police);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--texte-sur-marque);
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict-objet {
+  margin: 0.55rem 0 0;
+  font-family: var(--titres);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+}
+
+/* -----------------------------------------------------------------------
+   25. L'ÉCRAN D'UN SCRUTIN
+   -------------------------------------------------------------------- */
+
+/* Le texte dont relève le scrutin : il mène ailleurs, donc il est cerné. */
+.lien-texte {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-section);
+  background: var(--creme);
+  border: var(--trait);
+  color: inherit;
+  text-decoration: none;
+}
+
+.lien-texte-corps {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.lien-texte .surtitre {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.6rem;
+  color: var(--texte-second);
+}
+
+.lien-texte b {
+  font-family: var(--titres);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.lien-texte .doux {
+  color: var(--texte-second);
+  font-size: 0.85rem;
+}
+
+.chevron {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  color: var(--encre);
+}
+
+.bloc-salle {
+  padding-bottom: 0.85rem;
+}
+
+.legende-votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.85rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.legende-votes span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legende-votes i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legende-votes .t-p i {
+  background: var(--pour);
+}
+
+.legende-votes .t-c i {
+  background: var(--contre);
+}
+
+.legende-votes .t-a i {
+  background: var(--abstention);
+}
+
+.legende-votes .t-n i {
+  background: var(--absent);
+}
+
+/* Ce que ça change : la phrase prend la couleur du résultat, une seule fois. */
+.portee-dit {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: var(--r-section);
+  font-family: var(--titres);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--encre);
+}
+
+.portee-dit.adopte {
+  background: var(--pour);
+}
+
+.portee-dit.rejete {
+  background: var(--contre);
+}
+
+.lien-carte {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0.85rem 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--r-section);
+  background: var(--creme);
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--titres);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.lien-carte span {
+  flex-grow: 1;
+}
+
+/* Depuis que le bandeau porte le verdict, le récapitulatif n'a plus à reprendre
+   la couleur : deux aplats pour la même information, c'est un de trop. */
+.resultat.adopte,
+.resultat.rejete {
+  background: var(--creme);
+  padding: 0.9rem 1rem;
+}
+
+.resultat.adopte small,
+.resultat.rejete small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--texte-second);
 }
