@@ -192,3 +192,40 @@ export function texteSur(fond: string | undefined): string {
   const surCreme = (luminance('#fbf7ef') + 0.05) / (l + 0.05);
   return surEncre >= surCreme ? 'var(--encre)' : 'var(--creme)';
 }
+
+// ----------------------------------------------------------- Montrer du doigt
+
+/**
+ * La flèche manuscrite qui désigne un point : sa queue et sa pointe.
+ *
+ * La pointe se déduit de la tangente de la courbe, elle n'est jamais écrite à
+ * la main. C'est la seule façon qu'elle reste dans l'axe quand on change
+ * l'inclinaison, le sens ou l'échelle : le dernier point de contrôle est posé
+ * sur cet axe, donc la tangente à l'arrivée vaut exactement `angle`.
+ *
+ * `angle` est la direction du trajet, pas celle d'où vient la flèche.
+ * `bombe` vaut 1 ou -1 et dit de quel côté la courbe s'écarte : en miroir, il
+ * s'inverse avec l'angle, sinon le geste ne se reflète pas.
+ */
+export function montrer(cx: number, cy: number, u: number, angle: number, bombe: 1 | -1 = 1) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  // La pointe s'arrête avant la cible, sinon elle la mange.
+  const tx = cx - c * u * 0.26;
+  const ty = cy - s * u * 0.26;
+  const qx = tx - c * u * 0.5;
+  const qy = ty - s * u * 0.5;
+  // Le départ s'écarte perpendiculairement, pour que la courbe se lise.
+  const dx = tx - c * u * 1.3 - s * u * 0.4 * bombe;
+  const dy = ty - s * u * 1.3 + c * u * 0.4 * bombe;
+  const aile = (ecart: number) => {
+    const a = angle + Math.PI + ecart;
+    return `${(tx + Math.cos(a) * u * 0.3).toFixed(2)} ${(ty + Math.sin(a) * u * 0.3).toFixed(2)}`;
+  };
+  const t = `${tx.toFixed(2)} ${ty.toFixed(2)}`;
+  return {
+    queue: `M${dx.toFixed(2)} ${dy.toFixed(2)}Q${qx.toFixed(2)} ${qy.toFixed(2)} ${t}`,
+    pointe: `M${aile(-0.46)}L${t}L${aile(0.46)}`,
+    depart: { x: dx, y: dy },
+  };
+}

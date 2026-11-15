@@ -5,7 +5,7 @@
 // jauges à médiane, l'histogramme mois par mois, et les illustrations au trait.
 
 import { type ReactNode, useMemo } from 'react';
-import { type Point, arc, chemin, dome, sieges, tick, vignette } from './dessins';
+import { type Point, arc, chemin, dome, montrer, sieges, tick, vignette } from './dessins';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -81,24 +81,21 @@ export function BancHemicycle({
 
   const s = vue.siege;
   // La flèche part du côté qui laisse de la place : vers l'intérieur du dessin.
-  const sens = s && s.x > 175 ? -1 : 1;
-  const ancre = s ? { x: s.x + 15 * sens, y: s.y - 15 } : null;
+  const sens: 1 | -1 = s && s.x > 175 ? -1 : 1;
+  // Elle arrive à plat plutôt qu'en diagonale : le dessin est large et bas.
+  const geste = s ? montrer(s.x, s.y, 40, sens === 1 ? Math.PI * (5 / 6) : Math.PI / 6, sens) : null;
 
   return (
-    <svg className="banc" viewBox="0 0 350 150" role="img" aria-label={description}>
+    // Le cadre monte au-dessus des sièges : la flèche et son mot ont besoin de
+    // cette marge quand le siège est au dernier rang, tout en haut du dessin.
+    <svg className="banc" viewBox="0 -26 350 176" role="img" aria-label={description}>
       <path d={vue.tous} fill="var(--encre)" opacity="0.2" />
       <path d={vue.banc} fill="var(--encre)" />
-      {s && ancre && (
+      {s && geste && (
         <>
+          <path d={geste.queue} fill="none" stroke="var(--encre)" strokeWidth="2.1" strokeLinecap="round" />
           <path
-            d={`M${(s.x + 58 * sens).toFixed(1)} ${(s.y - 46).toFixed(1)}C${(s.x + 40 * sens).toFixed(1)} ${(s.y - 40).toFixed(1)} ${(s.x + 30 * sens).toFixed(1)} ${(s.y - 34).toFixed(1)} ${ancre.x.toFixed(1)} ${ancre.y.toFixed(1)}`}
-            fill="none"
-            stroke="var(--encre)"
-            strokeWidth="2.1"
-            strokeLinecap="round"
-          />
-          <path
-            d={`M${(s.x + 23 * sens).toFixed(1)} ${(s.y - 21).toFixed(1)}L${ancre.x.toFixed(1)} ${ancre.y.toFixed(1)}L${(s.x + 23 * sens).toFixed(1)} ${(s.y - 11).toFixed(1)}`}
+            d={geste.pointe}
             fill="none"
             stroke="var(--encre)"
             strokeWidth="2.1"
@@ -107,8 +104,8 @@ export function BancHemicycle({
           />
           <text
             className="banc-mot"
-            x={(s.x + 62 * sens).toFixed(1)}
-            y={(s.y - 46).toFixed(1)}
+            x={(geste.depart.x + 5 * sens).toFixed(1)}
+            y={geste.depart.y.toFixed(1)}
             textAnchor={sens === 1 ? 'start' : 'end'}
           >
             {mot}
@@ -161,7 +158,9 @@ export function SalleVotes({
   const s = vue.siege;
   const sens = s && s.x > 175 ? -1 : 1;
   return (
-    <svg className="banc" viewBox="0 0 350 150" role="img" aria-label={description}>
+    // Le cadre monte au-dessus des sièges : la flèche et son mot ont besoin de
+    // cette marge quand le siège est au dernier rang, tout en haut du dessin.
+    <svg className="banc" viewBox="0 -26 350 176" role="img" aria-label={description}>
       <path d={vue.vide} fill="var(--encre)" opacity="0.18" />
       <path d={vue.n} fill="var(--absent)" />
       <path d={vue.a} fill="var(--abstention)" />

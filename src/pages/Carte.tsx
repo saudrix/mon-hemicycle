@@ -19,7 +19,7 @@ import {
   positionDe,
 } from '../data';
 import { BandeauPage, BandeauRetour } from '../design/Bandeau';
-import { centre, texteSur } from '../design/dessins';
+import { centre, montrer, texteSur } from '../design/dessins';
 import { useAsync } from '../hooks';
 
 const COULEURS_VOTE: Record<Position | 'absent', string> = {
@@ -127,7 +127,9 @@ function Vue({
     const cle = `${c.depNum}-${c.circo}`;
     const tracee = metro.circos.find((x) => x.k === cle);
     const pt = tracee ? centre(tracee.d) : null;
-    return pt ? { cle, pt, depute: parCirco.get(cle)?.depute ?? null } : null;
+    if (!pt) return null;
+    const u = metro.largeur / 10;
+    return { cle, pt, u, fleche: montrer(pt.x, pt.y, u, Math.PI / 4), depute: parCirco.get(cle)?.depute ?? null };
   }, [metro, parCirco]);
 
   return (
@@ -157,10 +159,10 @@ function Vue({
           <svg className="carte" viewBox={`-5 -5 ${metro.largeur + 10} ${metro.hauteur + 10}`} role="img" aria-label={metro.nom}>
             {metro.circos.map((c) => trace(c.k, c.d))}
             {mienne && !filtre && (
-              <g className="repere-mien" aria-hidden style={{ strokeWidth: metro.largeur / 150 }}>
-                <path d={fleche(mienne.pt, metro.largeur / 10)} fill="none" />
-                <path d={pointe(mienne.pt, metro.largeur / 10)} fill="none" />
-                <circle cx={mienne.pt.x} cy={mienne.pt.y} r={metro.largeur / 90} className="repere-point" />
+              <g className="repere-mien" aria-hidden style={{ strokeWidth: mienne.u / 15 }}>
+                <path d={mienne.fleche.queue} fill="none" />
+                <path d={mienne.fleche.pointe} fill="none" />
+                <circle cx={mienne.pt.x} cy={mienne.pt.y} r={mienne.u / 9} className="repere-point" />
               </g>
             )}
           </svg>
@@ -231,13 +233,6 @@ function Vue({
     </>
   );
 }
-
-/** La courbe qui mène à ma circonscription, et sa pointe. */
-const fleche = (p: { x: number; y: number }, u: number) =>
-  `M${p.x - u} ${p.y - u * 0.55}C${p.x - u * 0.66} ${p.y - u * 0.6} ${p.x - u * 0.42} ${p.y - u * 0.4} ${p.x - u * 0.13} ${p.y - u * 0.11}`;
-
-const pointe = (p: { x: number; y: number }, u: number) =>
-  `M${p.x - u * 0.3} ${p.y - u * 0.17}L${p.x - u * 0.13} ${p.y - u * 0.11}L${p.x - u * 0.2} ${p.y + u * 0.02}`;
 
 function Fiche({
   depute,
