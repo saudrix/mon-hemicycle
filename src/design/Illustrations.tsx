@@ -4,7 +4,7 @@
 // Les objets dessinés du système : la marque, le banc dans l'hémicycle, les
 // jauges à médiane, l'histogramme mois par mois, et les illustrations au trait.
 
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { type Point, arc, chemin, dome, sieges, tick, vignette } from './dessins';
 
 const BASE = import.meta.env.BASE_URL;
@@ -288,6 +288,71 @@ export function BarresParJour({ jours, description }: { jours: { cle: string; n:
       })}
       <path d="M0 50h300" stroke="var(--encre)" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
+  );
+}
+
+// --------------------------------------------------------------- Les haltères
+
+export type Haltere = { cle: string; nom: ReactNode; seance: number | null; commission: number | null; detail: string };
+
+/**
+ * Un trait par groupe, de la séance à la commission. Les deux mesures ne
+ * disent pas la même chose : un classement sur une seule est faux, donc elles
+ * ne se montrent jamais l'une sans l'autre.
+ */
+export function Halteres({
+  lignes,
+  medSeance,
+  medCommission,
+}: {
+  lignes: Haltere[];
+  medSeance: number | null;
+  medCommission: number | null;
+}) {
+  // L'échelle s'arrête au-dessus de la plus grande valeur, par pas de 20 points :
+  // à l'échelle 0-100 tout se tasserait à gauche. L'axe est gradué, donc il ne
+  // trompe personne.
+  const sommet = Math.max(
+    0.2,
+    ...lignes.flatMap((l) => [l.seance ?? 0, l.commission ?? 0]),
+    medSeance ?? 0,
+    medCommission ?? 0,
+  );
+  const max = Math.min(1, Math.ceil((sommet + 0.04) * 5) / 5);
+  const pos = (v: number) => `${(Math.min(Math.max(v, 0), max) / max) * 100}%`;
+  const graduations: number[] = [];
+  for (let t = 0; t <= max + 1e-9; t += 0.2) graduations.push(Math.round(t * 100) / 100);
+  return (
+    <div className="halteres">
+      <ul>
+        {lignes.map((l) => {
+          const a = l.seance ?? 0;
+          const b = l.commission ?? 0;
+          return (
+            <li key={l.cle}>
+              <span className="haltere-nom">{l.nom}</span>
+              <span className="haltere-piste">
+                {medSeance != null && <i className="repere repere-seance" style={{ left: pos(medSeance) }} aria-hidden />}
+                {medCommission != null && <i className="repere repere-commission" style={{ left: pos(medCommission) }} aria-hidden />}
+                {l.seance != null && l.commission != null && (
+                  <i className="haltere-trait" style={{ left: pos(Math.min(a, b)), width: pos(Math.abs(b - a)) }} aria-hidden />
+                )}
+                {l.seance != null && <i className="pt pt-seance" style={{ left: pos(a) }} aria-hidden />}
+                {l.commission != null && <i className="pt pt-commission" style={{ left: pos(b) }} aria-hidden />}
+              </span>
+              <span className="haltere-vals">{l.detail}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="haltere-axe" aria-hidden>
+        {graduations.map((t) => (
+          <span key={t} style={{ left: pos(t) }}>
+            {Math.round(t * 100)} %
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 

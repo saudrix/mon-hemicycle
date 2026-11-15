@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Aide, CarteDepute, Chargement, Jauge, Pastille } from '../components';
+import { Aide, CarteDepute, Chargement, Pastille } from '../components';
 import {
   type JourPresence,
   type Meta,
@@ -15,6 +15,9 @@ import {
   tauxCommission,
   tauxVote,
 } from '../data';
+import { BandeauPage } from '../design/Bandeau';
+import { Halteres } from '../design/Illustrations';
+import { mediane } from '../design/dessins';
 import { useAsync } from '../hooks';
 
 type Indicateur = 'vote' | 'commission';
@@ -38,7 +41,7 @@ export function Presence() {
 function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
   const [indicateur, setIndicateur] = useState<Indicateur>('vote');
   const [vue, setVue] = useState<Vue>('groupes');
-  const actifs = (j: JourPresence) => (indicateur === 'vote' ? j.n > 0 : Object.keys(j.com).length > 0);
+  const actifs = (j: JourPresence) => j.n > 0;
   const derniere = [...jours].reverse().find(actifs)?.date ?? jours.at(-1)!.date;
   const [periode, setPeriode] = useState<string>('3m');
   const [du, setDu] = useState<string>(decalerJours(derniere, -91));
@@ -57,39 +60,35 @@ function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
   // Taux global jour par jour, pour la frise.
   const frise = useMemo(
     () =>
-      selection.filter(actifs).map((j) => {
-        if (indicateur === 'vote') {
+      selection
+        .filter((j) => j.n > 0)
+        .map((j) => {
           const siegeant = meta.deputes.filter((d) => enMandat(d, j.date)).length;
           const votes = Object.values(j.v).reduce((a, b) => a + b, 0);
           return { date: j.date, taux: votes / (j.n * siegeant) };
-        }
-        let p = 0;
-        let t = 0;
-        for (const [pr, e, a] of Object.values(j.com)) {
-          p += pr;
-          t += pr + e + a;
-        }
-        return { date: j.date, taux: t ? p / t : 0 };
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selection, indicateur, meta],
+        }),
+    [selection, meta],
   );
 
   const global = useMemo(() => [...cumuler(taux, () => 'tous').values()][0], [taux]);
 
+  // Les deux médianes de l'Assemblée, qui servent de repère sur les haltères.
+  const medianes = useMemo(() => {
+    const assis = meta.deputes.map((d, i) => ({ d, t: taux[i] })).filter((x) => x.d.actif);
+    return {
+      seance: mediane(assis.map((x) => tauxVote(x.t))),
+      commission: mediane(assis.map((x) => tauxCommission(x.t))),
+    };
+  }, [meta, taux]);
+
   return (
-    <div className="page">
-      <h1>Présence des députés</h1>
+    <>
+      <BandeauPage
+        titre="Qui siège vraiment ?"
+        intro="Deux mesures qui ne disent pas la même chose. Jamais l’une sans l’autre : un classement sur une seule est faux."
+      />
 
-      <div className="filtres" role="group" aria-label="Indicateur">
-        <button aria-pressed={indicateur === 'vote'} onClick={() => setIndicateur('vote')}>
-          Votes en séance
-        </button>
-        <button aria-pressed={indicateur === 'commission'} onClick={() => setIndicateur('commission')}>
-          Commissions
-        </button>
-      </div>
-
+      <div className="page">
       <div className="filtres petits" role="group" aria-label="Période">
         {PERIODES.map(([cle, label, n]) => (
           <button key={cle} aria-pressed={periode === cle} onClick={() => choisirPeriode(cle, n)}>
@@ -126,22 +125,26 @@ function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
         </label>
       </div>
 
-      <section className="synthese">
-        <span className="synthese-valeur">{pct(global ? valeur(global) : null)}</span>
-        <span>
-          {indicateur === 'vote'
-            ? `de participation moyenne aux ${frise.length ? selection.reduce((a, j) => a + j.n, 0) : 0} scrutins`
-            : 'de présence moyenne en commission'}
-          <br />
-          <small>
-            {du === au ? `le ${formatDate(du)}` : `du ${formatDate(du)} au ${formatDate(au)}`} · {frise.length} jour
-            {frise.length > 1 ? 's' : ''} de séance
-          </small>
-        </span>
-      </section>
+      {/* Les deux médianes côte à côte : l'ordre de lecture dit qu'elles se valent. */}
+      <div className="medianes">
+        <div className="mediane mediane-commission">
+          <span className="tuile-chiffre">{pct(medianes.commission)}</span>
+          <span className="tuile-label">médiane en commission</span>
+        </div>
+        <div className="mediane mediane-seance">
+          <span className="tuile-chiffre">{pct(medianes.seance)}</span>
+          <span className="tuile-label">médiane en séance</span>
+        </div>
+      </div>
+      <p className="note">
+        {du === au ? `Le ${formatDate(du)}` : `Du ${formatDate(du)} au ${formatDate(au)}`} · {frise.length} jour
+        {frise.length > 1 ? 's' : ''} de séance · {selection.reduce((a, j) => a + j.n, 0)} scrutins · moyenne{' '}
+        {pct(global ? tauxVote(global) : null)} en séance et {pct(global ? tauxCommission(global) : null)} en commission.
+      </p>
 
+      {frise.length > 1 && <h2 className="titre-frise">La séance, jour par jour</h2>}
       {frise.length > 1 && (
-        <div className="frise" role="img" aria-label="Taux jour par jour">
+        <div className="frise" role="img" aria-label="Participation aux scrutins, jour de séance par jour de séance">
           {frise.map((j) => (
             <button
               key={j.date}
@@ -190,39 +193,82 @@ function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
       </div>
 
       {vue === 'deputes' ? (
-        <ClassementDeputes meta={meta} taux={taux} valeur={valeur} />
+        <ClassementDeputes
+          meta={meta}
+          taux={taux}
+          valeur={valeur}
+          indicateur={indicateur}
+          setIndicateur={setIndicateur}
+        />
       ) : (
-        <Repartition meta={meta} taux={taux} valeur={valeur} vue={vue} />
+        <Repartition meta={meta} taux={taux} vue={vue} medianes={medianes} />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
-function Repartition({ meta, taux, valeur, vue }: { meta: Meta; taux: Taux[]; valeur: (t: Taux) => number | null; vue: Vue }) {
+/** Un haltère par groupe ou par région : de la séance à la commission. */
+function Repartition({
+  meta,
+  taux,
+  vue,
+  medianes,
+}: {
+  meta: Meta;
+  taux: Taux[];
+  vue: Vue;
+  medianes: { seance: number | null; commission: number | null };
+}) {
   const lignes = [...cumuler(taux, (i) => (vue === 'groupes' ? meta.deputes[i].groupe : meta.deputes[i].region))]
-    .map(([cle, t]) => ({ cle, t, v: valeur(t) }))
-    .filter((l) => l.v != null)
-    .sort((a, b) => b.v! - a.v!);
+    .map(([cle, t]) => ({ cle, t, seance: tauxVote(t), commission: tauxCommission(t) }))
+    .filter((l) => l.seance != null || l.commission != null)
+    .sort((a, b) => (b.commission ?? b.seance ?? 0) - (a.commission ?? a.seance ?? 0));
   return (
-    <ul className="liste repartition">
-      {lignes.map(({ cle, t, v }) => {
-        const groupe = vue === 'groupes' ? meta.groupes[cle] : undefined;
-        return (
-          <li key={cle}>
-            <div className="repartition-tete">
-              {groupe ? <Pastille groupe={groupe} /> : <strong>{cle}</strong>}
-              <small>{t.deputes} députés</small>
-              <b>{pct(v)}</b>
-            </div>
-            <Jauge valeur={v} couleur={groupe?.couleur} />
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <p className="note">Chaque trait va de la séance à la commission.</p>
+      <div className="bloc bloc-halteres">
+        <Halteres
+          medSeance={medianes.seance}
+          medCommission={medianes.commission}
+          lignes={lignes.map(({ cle, t, seance, commission }) => {
+            const groupe = vue === 'groupes' ? meta.groupes[cle] : undefined;
+            return {
+              cle,
+              nom: (
+                <>
+                  {groupe ? <Pastille groupe={groupe} /> : <strong>{cle}</strong>}
+                  <small>{t.deputes} députés</small>
+                </>
+              ),
+              seance,
+              commission,
+              detail: `${seance == null ? '–' : Math.round(seance * 100)} → ${pct(commission)}`,
+            };
+          })}
+        />
+      </div>
+      <p className="legende-chips legende-halteres">
+        <i className="chip-seance rond" /> séance
+        <i className="chip-commission rond" /> commission
+      </p>
+    </>
   );
 }
 
-function ClassementDeputes({ meta, taux, valeur }: { meta: Meta; taux: Taux[]; valeur: (t: Taux) => number | null }) {
+function ClassementDeputes({
+  meta,
+  taux,
+  valeur,
+  indicateur,
+  setIndicateur,
+}: {
+  meta: Meta;
+  taux: Taux[];
+  valeur: (t: Taux) => number | null;
+  indicateur: Indicateur;
+  setIndicateur: (i: Indicateur) => void;
+}) {
   const [ordre, setOrdre] = useState<'desc' | 'asc'>('desc');
   const [q, setQ] = useState('');
   const [limite, setLimite] = useState(30);
@@ -233,7 +279,22 @@ function ClassementDeputes({ meta, taux, valeur }: { meta: Meta; taux: Taux[]; v
     .sort((a, b) => (ordre === 'desc' ? b.v! - a.v! : a.v! - b.v!));
   return (
     <>
-      <input type="search" className="champ-recherche" placeholder="Nom ou département" value={q} onChange={(e) => setQ(e.target.value)} />
+      <p className="note">Un classement se fait sur une mesure à la fois : choisissez laquelle.</p>
+      <div className="filtres petits" role="group" aria-label="Mesure du classement">
+        <button aria-pressed={indicateur === 'commission'} onClick={() => setIndicateur('commission')}>
+          En commission
+        </button>
+        <button aria-pressed={indicateur === 'vote'} onClick={() => setIndicateur('vote')}>
+          En séance
+        </button>
+      </div>
+      <div className="champ-recherche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+          <circle cx="11" cy="11" r="7" />
+          <path d="M16.5 16.5 21 21" />
+        </svg>
+        <input type="search" aria-label="Nom ou département" placeholder="Nom ou département" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
       <div className="filtres petits">
         <button aria-pressed={ordre === 'desc'} onClick={() => setOrdre('desc')}>
           Les plus présents
