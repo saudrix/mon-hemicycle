@@ -1,5 +1,5 @@
 // =============================================================================
-// Encre et couleur — la géométrie des dessins
+// Encre et couleur - la géométrie des dessins
 // =============================================================================
 // Rien ici ne touche au DOM : ce sont des fonctions pures qui rendent des
 // chemins SVG. Les composants qui les consomment sont dans Illustrations.tsx.
@@ -15,7 +15,7 @@ export type Point = { ang: number; x: number; y: number; k: number };
  * fond portent des sièges plus petits pour creuser la profondeur.
  *
  * Les points sortent triés par angle décroissant, c'est-à-dire de l'extrême
- * gauche à l'extrême droite — l'ordre inverse de `placeHemicycle`, qui numérote
+ * gauche à l'extrême droite - l'ordre inverse de `placeHemicycle`, qui numérote
  * de 1 (extrême droite) à 650 (extrême gauche).
  */
 export function sieges(total: number, rows: number, rIn: number, rOut: number, cx: number, cy: number, aplat: number): Point[] {
@@ -163,4 +163,32 @@ export function mediane(valeurs: (number | null)[]): number | null {
   if (!v.length) return null;
   const m = v.length >> 1;
   return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+
+// ------------------------------------------------------- Lire sur une couleur
+
+const canal = (v: number) => {
+  const x = v / 255;
+  return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+};
+
+/** Luminance relative d'une couleur `#rrggbb`. */
+function luminance(hex: string) {
+  const h = hex.replace('#', '');
+  const n = h.length === 3 ? [...h].map((c) => c + c) : [h.slice(0, 2), h.slice(2, 4), h.slice(4, 6)];
+  const [r, g, b] = n.map((x) => canal(parseInt(x, 16)));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * L'encre ou le crème, selon ce qui se lit le mieux sur un fond donné.
+ * Les couleurs de groupe sont celles de l'Assemblée : on ne les change pas,
+ * on choisit le texte qui tient dessus.
+ */
+export function texteSur(fond: string | undefined): string {
+  if (!fond || !/^#[0-9a-f]{3,6}$/i.test(fond)) return 'var(--encre)';
+  const l = luminance(fond);
+  const surEncre = (l + 0.05) / (luminance('#17213d') + 0.05);
+  const surCreme = (luminance('#fbf7ef') + 0.05) / (l + 0.05);
+  return surEncre >= surCreme ? 'var(--encre)' : 'var(--creme)';
 }

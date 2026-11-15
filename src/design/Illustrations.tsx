@@ -1,5 +1,5 @@
 // =============================================================================
-// Encre et couleur — les dessins
+// Encre et couleur - les dessins
 // =============================================================================
 // Les objets dessinés du système : la marque, le banc dans l'hémicycle, les
 // jauges à médiane, l'histogramme mois par mois, et les illustrations au trait.

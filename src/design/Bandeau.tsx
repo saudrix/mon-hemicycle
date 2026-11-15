@@ -1,5 +1,5 @@
 // =============================================================================
-// Encre et couleur — les bandeaux
+// Encre et couleur - les bandeaux
 // =============================================================================
 // Une seule couleur pleine par écran, et c'est elle : le jaune de marque porte
 // le titre de l'écran. Les écrans de détail portent la flèche de retour et le

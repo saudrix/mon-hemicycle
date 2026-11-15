@@ -243,7 +243,7 @@ function Repartition({
               ),
               seance,
               commission,
-              detail: `${seance == null ? '–' : Math.round(seance * 100)} → ${pct(commission)}`,
+              detail: `${seance == null ? '-' : Math.round(seance * 100)} → ${pct(commission)}`,
             };
           })}
         />

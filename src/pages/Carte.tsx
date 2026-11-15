@@ -19,7 +19,7 @@ import {
   positionDe,
 } from '../data';
 import { BandeauPage, BandeauRetour } from '../design/Bandeau';
-import { centre } from '../design/dessins';
+import { centre, texteSur } from '../design/dessins';
 import { useAsync } from '../hooks';
 
 const COULEURS_VOTE: Record<Position | 'absent', string> = {
@@ -213,7 +213,11 @@ function Vue({
             <button
               key={cle}
               className={selection === cle ? 'case choisie' : 'case'}
-              style={{ background: couleur(cat), opacity: filtre && filtre !== cat ? 0.15 : 1 }}
+              style={{
+                background: couleur(cat),
+                color: texteSur(detail ? undefined : meta.groupes[cat]?.couleur),
+                opacity: filtre && filtre !== cat ? 0.15 : 1,
+              }}
               onClick={() => setSelection(cle)}
               title={`${depute.dep}, ${depute.circo}e`}
             >

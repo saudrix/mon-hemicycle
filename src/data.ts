@@ -21,8 +21,8 @@ export type Depute = {
 /**
  * Les bancs de la salle, de l'extrême gauche à l'extrême droite.
  *
- * Les groupes sont rangés selon leur place moyenne réelle — l'axe politique
- * sort tout seul des données — et chacun est posé d'un bloc. La numérotation
+ * Les groupes sont rangés selon leur place moyenne réelle - l'axe politique
+ * sort tout seul des données - et chacun est posé d'un bloc. La numérotation
  * des places suit les rangées physiques, que l'open data ne publie pas : la
  * placer au siège près donnerait des bancs en confettis. Le numéro affiché
  * reste exact, sa position dans le dessin est indicative.
@@ -223,7 +223,7 @@ const dateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long'
 const dateCourteFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 export const formatDate = (iso: string) => dateFmt.format(new Date(`${iso}T12:00:00`));
 export const formatDateCourte = (iso: string) => dateCourteFmt.format(new Date(`${iso}T12:00:00`));
-export const pct = (x: number | null) => (x == null || Number.isNaN(x) ? '–' : `${Math.round(x * 100)} %`);
+export const pct = (x: number | null) => (x == null || Number.isNaN(x) ? '-' : `${Math.round(x * 100)} %`);
 
 // ---------- Présence ----------
 

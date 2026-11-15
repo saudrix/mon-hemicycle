@@ -1,5 +1,5 @@
 /* =============================================================================
-   Encre et couleur — les composants
+   Encre et couleur - les composants
    =============================================================================
    Les objets du système, et le branchement des classes existantes de
    l'application dessus. Aucune donnée affichée n'est retirée : on ne change
@@ -400,7 +400,7 @@ a.mon-vote {
 /* -----------------------------------------------------------------------
    10. LE VERDICT D'UN SCRUTIN
    Le bandeau prend la couleur du verdict : la réponse arrive avant la lecture.
-   L'encre tient dessus — mesuré 5,9:1 sur le vert, 5,4:1 sur le corail — et
+   L'encre tient dessus - mesuré 5,9:1 sur le vert, 5,4:1 sur le corail - et
    c'est le seul endroit où une couleur de vote couvre une surface entière.
    -------------------------------------------------------------------- */
 
@@ -2138,4 +2138,17 @@ a.mon-vote {
 .bandeau-retour .bandeau-surtitre {
   position: relative;
   z-index: 1;
+}
+
+/* Une liste en grille ne rétrécit pas ses éléments toute seule : sans ça une
+   carte trop large pousse la page et fait défiler l'écran de travers. */
+.liste > li {
+  min-width: 0;
+}
+
+/* Sur la carte, les cases d'outre-mer portent la couleur du groupe : le texte
+   qui s'y lit est choisi d'après elle, jamais fixé d'avance. */
+.case {
+  border: 1.6px solid var(--encre);
+  font-weight: 700;
 }
