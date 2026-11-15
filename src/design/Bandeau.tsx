@@ -22,7 +22,15 @@ export function BandeauPage({ titre, intro, children }: { titre: ReactNode; intr
 }
 
 /** Le bandeau d'un écran de détail : on en revient, donc la flèche d'abord. */
-export function BandeauRetour({ titre, surtitre }: { titre?: ReactNode; surtitre?: ReactNode }) {
+export function BandeauRetour({
+  titre,
+  surtitre,
+  children,
+}: {
+  titre?: ReactNode;
+  surtitre?: ReactNode;
+  children?: ReactNode;
+}) {
   const navigate = useNavigate();
   return (
     <header className="bandeau bandeau-retour">
@@ -38,6 +46,7 @@ export function BandeauRetour({ titre, surtitre }: { titre?: ReactNode; surtitre
       </div>
       {surtitre && <p className="bandeau-surtitre">{surtitre}</p>}
       {titre && <h1>{titre}</h1>}
+      {children}
     </header>
   );
 }

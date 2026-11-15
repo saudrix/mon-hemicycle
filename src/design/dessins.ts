@@ -130,6 +130,31 @@ export function vignette(partPour: number) {
   return { pour: d(pts.slice(0, coupe)), contre: d(pts.slice(coupe)) };
 }
 
+// ------------------------------------------------------------- Un repère
+
+/**
+ * Le centre de la boîte d'un tracé SVG, pour y poser un repère.
+ * Les contours de circonscription sont faits de `M`, `L` et `Z` seulement :
+ * les nombres s'y lisent deux par deux.
+ */
+export function centre(d: string): { x: number; y: number } | null {
+  const n = d.match(/-?\d+(?:\.\d+)?/g);
+  if (!n || n.length < 4) return null;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (let i = 0; i + 1 < n.length; i += 2) {
+    const x = +n[i];
+    const y = +n[i + 1];
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+}
+
 // --------------------------------------------------------------- La médiane
 
 /** Médiane d'une série, en ignorant les valeurs manquantes. */

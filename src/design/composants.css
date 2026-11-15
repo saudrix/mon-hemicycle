@@ -1979,3 +1979,163 @@ a.mon-vote {
   background: var(--encre);
   opacity: 1;
 }
+
+/* -----------------------------------------------------------------------
+   27. LA CARTE
+   Seule exception du système : les couleurs y sont celles des groupes de
+   l'Assemblée, pas les nôtres. L'écran le dit en toutes lettres.
+   -------------------------------------------------------------------- */
+
+.bloc-carte {
+  padding-bottom: 0.9rem;
+}
+
+.bloc-carte .carte {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.2rem 0 0.6rem;
+}
+
+/* Le repère de ma circonscription : le même trait à la main que le banc. */
+.repere-mien path {
+  stroke: var(--encre);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.repere-point {
+  fill: var(--jaune);
+  stroke: var(--encre);
+}
+
+.fiche-carte .surtitre {
+  display: block;
+  margin-bottom: 1px;
+  font-size: 0.6rem;
+  color: var(--texte-second);
+}
+
+.note-carte {
+  margin: 0.7rem 0 0;
+  line-height: 1.45;
+}
+
+.note-carte strong {
+  color: var(--encre);
+}
+
+/* La fiche vit dans le bloc de la carte : elle ne flotte plus au-dessus de
+   l'écran, et une couche se signale par un trait, jamais par une ombre. */
+.fiche-carte {
+  position: static;
+  margin-top: 0.3rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--blanc);
+  border: var(--trait);
+  border-radius: var(--r-carte);
+  box-shadow: none;
+}
+
+.fiche-carte img {
+  width: 46px;
+  height: 58px;
+  border-radius: 12px;
+  border: 2px solid var(--encre);
+  box-sizing: border-box;
+}
+
+.fiche-carte strong {
+  font-family: var(--titres);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* -----------------------------------------------------------------------
+   28. LA FICHE D'UN TEXTE
+   -------------------------------------------------------------------- */
+
+.bandeau-procedure {
+  position: relative;
+  margin: 0.75rem 0 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--texte-sur-marque);
+}
+
+.bandeau-retour .bandeau-procedure + h1 {
+  margin-top: 0.25rem;
+  font-size: 1.85rem;
+}
+
+.bandeau-pied {
+  position: relative;
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--texte-sur-marque);
+  font-variant-numeric: tabular-nums;
+}
+
+.bandeau-pied + .bandeau-pied {
+  margin-top: 0.2rem;
+}
+
+/* Les amendements se replient : ils sont nombreux, et ils ne sont pas la
+   première chose à lire sur un texte. */
+.repli {
+  margin: 1.1rem 0;
+  border-radius: var(--r-section);
+  border: 2px dashed var(--trait-moyen);
+  padding: 0 1rem;
+}
+
+.repli > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 0;
+  font-family: var(--titres);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.repli > summary::-webkit-details-marker {
+  display: none;
+}
+
+.repli > summary::before {
+  content: '';
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-right: 2.4px solid var(--encre);
+  border-bottom: 2.4px solid var(--encre);
+  transform: rotate(45deg) translate(-2px, -2px);
+}
+
+.repli[open] > summary::before {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+
+.repli[open] {
+  padding-bottom: 1rem;
+}
+
+/* Le décor ne passe jamais derrière un titre long : il se range dans le coin
+   et le texte garde sa place devant. */
+.bandeau-retour .bandeau-decor {
+  top: -34px;
+  right: -76px;
+}
+
+.bandeau-retour h1,
+.bandeau-retour .bandeau-marque,
+.bandeau-retour .bandeau-surtitre {
+  position: relative;
+  z-index: 1;
+}
