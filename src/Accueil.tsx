@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Chargement, Pastille } from './components';
+import { Illu, type NomIllu } from './design/Illustrations';
 import { type Choix, circonscription, deputeDuChoix, enregistrerChoix, getMeta, lireChoix, nomComplet, photo } from './data';
 import { useAsync } from './hooks';
 import { Notifications } from './Notifications';
@@ -67,31 +68,52 @@ export function Accueil({ onFin }: { onFin: () => void }) {
   );
 }
 
+const PROMESSES: { illu: NomIllu; titre: string; detail: string }[] = [
+  { illu: 'perchoir', titre: 'Votre député', detail: 'Ses votes, sa présence en commission, son banc dans la salle.' },
+  { illu: 'texteDeLoi', titre: 'Chaque scrutin expliqué', detail: 'Rangé sous son texte de loi, avec ce que le résultat change.' },
+  { illu: 'votePour', titre: 'Prévenu à chaque vote', detail: 'Une notification à chaque scrutin, ou quand votre député se prononce.' },
+];
+
 function Presentation({ onSuite }: { onSuite: () => void }) {
   return (
-    <section className="accueil-etape">
-      <img className="accueil-logo" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
-      <h1>Les votes de l’Assemblée, en clair</h1>
-      <p className="intro">Mon Hémicycle rend lisible ce que font les députés, à partir des données publiques de l’Assemblée nationale.</p>
-      <ul className="accueil-atouts">
-        <li>
-          <b>👤 Votre député</b>
-          <span>Ses votes, sa participation et sa présence en commission.</span>
-        </li>
-        <li>
-          <b>🗳️ Chaque scrutin expliqué</b>
-          <span>Rangé sous son texte de loi, avec ce que le résultat change.</span>
-        </li>
-        <li>
-          <b>🔔 Prévenu à chaque vote</b>
-          <span>Une notification à chaque scrutin, ou à chaque vote de votre député.</span>
-        </li>
+    <section className="accueil-etape accueil-presentation">
+      <div className="accueil-illu">
+        <Illu nom="hemicycleVide" alt="Un hémicycle vu du dessus, un siège entouré à la main" />
+      </div>
+      <h1>
+        Les votes de l’Assemblée, <span className="surligne">en clair</span>
+      </h1>
+      <p className="intro">
+        Qui vous représente, comment il vote, et s’il est là. À partir des seules données publiques de l’Assemblée
+        nationale.
+      </p>
+      <ul className="promesses">
+        {PROMESSES.map((p) => (
+          <li key={p.titre}>
+            <span className="promesse-illu">
+              <Illu nom={p.illu} />
+            </span>
+            <span>
+              <b>{p.titre}</b>
+              <span>{p.detail}</span>
+            </span>
+          </li>
+        ))}
       </ul>
       <button className="principal large" onClick={onSuite}>
-        Commencer
+        Trouver mon député
+        <Fleche />
       </button>
       <p className="note">Application indépendante et gratuite, sans compte ni publicité.</p>
     </section>
+  );
+}
+
+function Fleche() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 5l7 7-7 7" />
+    </svg>
   );
 }
 

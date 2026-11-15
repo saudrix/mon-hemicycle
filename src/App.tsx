@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { Accueil, accueilAFaire } from './Accueil';
 import { getMeta, formatDate } from './data';
+import { Marque } from './design/Illustrations';
 import { useAsync } from './hooks';
 import { Carte } from './pages/Carte';
 import { DeputePage } from './pages/Depute';
@@ -24,12 +25,7 @@ export function App() {
   return (
     <HashRouter>
       <HautDePage />
-      <header className="barre-titre">
-        <span className="logo" aria-hidden>
-          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
-        </span>
-        <span>Mon Hémicycle</span>
-      </header>
+      <BandeauMarque />
       <main>
         <Routes>
           <Route path="/" element={<MonDepute />} />
@@ -61,6 +57,24 @@ export function App() {
         </NavLink>
       </nav>
     </HashRouter>
+  );
+}
+
+/**
+ * Le bandeau de marque commun. Les fiches de député portent le leur, qui
+ * contient en plus l'identité : il ne faut pas deux jaunes l'un sur l'autre.
+ */
+function BandeauMarque() {
+  const { pathname } = useLocation();
+  if (pathname === '/' || pathname.startsWith('/deputes/')) return null;
+  return (
+    <header className="bandeau barre-titre">
+      <span className="bandeau-decor" aria-hidden />
+      <div className="bandeau-marque">
+        <Marque />
+        <span>Mon Hémicycle</span>
+      </div>
+    </header>
   );
 }
 

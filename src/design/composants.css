@@ -663,39 +663,129 @@ a.mon-vote {
   background: transparent;
 }
 
-.accueil-logo {
-  width: 62px;
-  height: 62px;
-  border-radius: 18px;
-  border: 2.6px solid var(--encre);
-  background: var(--jaune);
-  padding: 6px;
-  box-sizing: border-box;
+/* Le premier écran n'est pas un sommaire : c'est une image, une promesse en
+   trois lignes et une seule porte d'entrée. */
+.accueil-presentation {
+  gap: 0;
+}
+
+/* L'illustration au trait, sur son fond d'illustration et dans son trait
+   d'encre. C'est le seul demi-cercle autorisé de la série. */
+.accueil-illu {
+  flex: none;
+  margin-top: 1rem;
+  height: 196px;
+  border-radius: var(--r-section);
+  background: var(--gris-illu);
+  border: 2.4px solid var(--encre);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accueil-illu img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Le surlignage au feutre : il souligne, il ne remplit pas. Le texte reste de
+   l'encre sur du blanc, le jaune ne passe que sous la ligne de base. */
+.surligne {
+  padding: 0 3px;
+  background: linear-gradient(to top, var(--jaune) 0, var(--jaune) 10px, transparent 10px);
+}
+
+.accueil-presentation h1 {
+  margin: 1.1rem 0 0;
+  font-size: 2rem;
+}
+
+.accueil-presentation .intro {
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
 }
 
 /* Les trois promesses se rangent : fond crème, pas de trait. Ce qui se clique
    porte le trait, et elles ne se cliquent pas. */
-.accueil-atouts li {
-  padding: 0.9rem 1.05rem;
-  border-radius: var(--r-carte);
+.promesses {
+  flex-grow: 1;
+  min-height: 0;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.promesses li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--r-petit);
   background: var(--creme);
-  border: 0;
+  padding: 0.62rem 0.9rem 0.62rem 0.62rem;
 }
 
-.accueil-atouts li b {
+.promesse-illu {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--gris-illu);
+  border: 2px solid var(--encre);
+  box-sizing: border-box;
+}
+
+.promesse-illu img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promesses li > span:last-child {
+  min-width: 0;
+}
+
+.promesses b {
+  display: block;
   font-family: var(--titres);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
-.accueil-atouts span {
+.promesses b + span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--texte-second);
 }
 
+.accueil-presentation .principal.large {
+  margin-top: 0.9rem;
+}
+
+.accueil-presentation .note {
+  margin: 0.7rem 0 0;
+  text-align: center;
+}
+
 .principal.large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
   min-height: 56px;
   padding: 0.95rem;
   font-size: 1.05rem;
+  border-width: 2.4px;
 }
 
 .accueil-depute {
@@ -740,4 +830,447 @@ a.mon-vote {
   accent-color: var(--encre);
   width: 20px;
   height: 20px;
+}
+
+/* -----------------------------------------------------------------------
+   15. LE BANDEAU DE MARQUE, ET L'IDENTITÉ QU'IL PORTE
+   Une seule couleur pleine par écran. Sur une fiche de député, le jaune
+   descend plus bas et tient le nom : il n'y a donc jamais deux jaunes.
+   -------------------------------------------------------------------- */
+
+.bandeau {
+  position: relative;
+  overflow: hidden;
+  background: var(--jaune);
+  color: var(--encre);
+  border-radius: var(--r-bandeau);
+}
+
+/* La fiche est rendue dans le flux de `main`, qui a ses marges : le bandeau
+   les reprend à son compte pour aller d'un bord à l'autre. */
+.bandeau-depute {
+  margin: 0 -16px;
+  padding: calc(env(safe-area-inset-top) + 0.9rem) 22px 0.95rem;
+}
+
+/* Un seul décor, loin du texte, et rien ne s'y lit. */
+.bandeau-decor {
+  position: absolute;
+  right: -54px;
+  top: 52px;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: var(--encre);
+  pointer-events: none;
+}
+
+.bandeau-marque {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--titres);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bandeau-marque > span {
+  flex-grow: 1;
+}
+
+.marque-logo {
+  display: block;
+  flex: none;
+  color: var(--encre);
+}
+
+/* La flèche de retour : cernée, au gabarit du pouce. */
+.retour {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px -6px -8px 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--encre);
+  color: var(--encre);
+}
+
+.retour svg {
+  width: 20px;
+  height: 20px;
+}
+
+.identite {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.portrait {
+  flex: none;
+  width: 54px;
+  height: 68px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 2.6px solid var(--encre);
+  background: var(--creme);
+}
+
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+}
+
+.identite-texte {
+  min-width: 0;
+}
+
+.surtitre {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--texte-sur-marque);
+}
+
+.identite-texte h1 {
+  margin: 3px 0 0;
+  font-size: 1.82rem;
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+}
+
+.identite-pied {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texte-sur-marque);
+}
+
+.identite-lieu sup {
+  font-size: 0.55em;
+}
+
+/* Blanc cerné d'encre sur le jaune : ce qui se clique porte le trait. */
+.changer {
+  padding: 2px 9px;
+  border-radius: var(--r-puce);
+  background: var(--blanc);
+  border: 1.6px solid var(--encre);
+  color: var(--encre);
+  font-family: var(--titres);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.identite-adresse {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.7rem;
+  color: var(--texte-sur-marque);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------------
+   16. LES BLOCS DE LA FICHE
+   -------------------------------------------------------------------- */
+
+.bloc {
+  border-radius: var(--r-section);
+  background: var(--creme);
+  padding: 0.85rem 1rem 0.5rem;
+  margin-top: 0.7rem;
+  overflow: hidden;
+}
+
+.bloc > h2,
+.bloc-tete h2 {
+  margin: 0;
+  font-size: 1.06rem;
+  flex-grow: 1;
+}
+
+.bloc-tete {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.bloc-tete-note {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Le banc déborde volontairement des marges du bloc : le dessin respire. */
+.banc {
+  display: block;
+  width: calc(100% + 2rem);
+  margin: 0.15rem -1rem 0;
+  height: auto;
+}
+
+.banc-mot {
+  font-family: var(--manuscrit);
+  font-size: 21px;
+  font-weight: 600;
+  fill: var(--encre);
+}
+
+/* Le violet dit la mesure, jamais un vote. */
+.bloc-mesures {
+  background: var(--commission-fond);
+  padding-bottom: 0.8rem;
+}
+
+.mesures {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.jauge-arc {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 20px;
+  background: var(--blanc);
+  padding: 0.6rem 0.65rem 0.5rem;
+}
+
+.jauge-arc svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.jauge-chiffre {
+  font-family: var(--titres);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  fill: var(--encre);
+}
+
+.jauge-lieu {
+  margin: 0.3rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.jauge-med {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--texte-second);
+}
+
+.mesures-pied {
+  margin: 0.6rem 0 0;
+  font-size: 0.72rem;
+  color: var(--texte-second);
+}
+
+/* -----------------------------------------------------------------------
+   17. LES TUILES DE CHIFFRES
+   -------------------------------------------------------------------- */
+
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.7rem 0;
+}
+
+.tuile {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: var(--r-petit);
+  background: var(--creme);
+  color: inherit;
+  padding: 0.7rem 0.8rem;
+}
+
+.tuile-chiffre {
+  display: block;
+  font-family: var(--titres);
+  font-size: 1.38rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuile-label {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.tuile-lien {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--texte-second);
+}
+
+/* -----------------------------------------------------------------------
+   18. MOIS PAR MOIS
+   -------------------------------------------------------------------- */
+
+.legende-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.legende-chips i {
+  width: 8px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.legende-chips i + i {
+  margin-left: 0.35rem;
+}
+
+.chip-commission {
+  background: var(--commission);
+}
+
+.chip-seance {
+  background: var(--seance);
+}
+
+.mois {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.45rem;
+}
+
+.mois-nom {
+  font-family: var(--texte-police);
+  font-size: 8.5px;
+  font-weight: 600;
+  fill: var(--texte-second);
+}
+
+/* -----------------------------------------------------------------------
+   19. LES FILTRES D'UNE LISTE
+   L'état actif ne tient pas sur la seule couleur : l'encre pleine le dit.
+   -------------------------------------------------------------------- */
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.filtre {
+  padding: 0.42rem 0.8rem;
+  border-radius: var(--r-puce);
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  color: var(--encre);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filtre[aria-pressed='true'] {
+  background: var(--encre);
+  color: var(--creme);
+}
+
+/* La vignette dessinée d'une ligne de vote. */
+.ligne-vote {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ligne-vote-illu {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--gris-illu);
+  box-sizing: border-box;
+}
+
+.ligne-vote-illu img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ligne-vote-corps {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  flex-grow: 1;
+}
+
+.onglets .compte {
+  font-weight: 500;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+/* L'illustration de l'écran de recherche, quand personne n'est encore choisi. */
+.recherche-illu {
+  height: 150px;
+  margin-bottom: 0.4rem;
+  border-radius: var(--r-section);
+  background: var(--gris-illu);
+  border: 2.4px solid var(--encre);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recherche-illu img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }

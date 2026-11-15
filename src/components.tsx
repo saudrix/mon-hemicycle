@@ -72,10 +72,10 @@ export function CarteDepute({ depute, groupe, taux }: { depute: Depute; groupe?:
   );
 }
 
-export function Aide({ children }: { children: ReactNode }) {
+export function Aide({ children, titre = 'Comment lire ce chiffre ?' }: { children: ReactNode; titre?: string }) {
   return (
     <details className="aide">
-      <summary>Comment lire ce chiffre ?</summary>
+      <summary>{titre}</summary>
       <div>{children}</div>
     </details>
   );

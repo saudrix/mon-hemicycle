@@ -119,6 +119,8 @@ function buildActeurs(zip) {
       circo: lieu.numCirco ? Number(lieu.numCirco) : null,
       region: lieu.region ?? null,
       actif: sieges.some((m) => !m.dateFin),
+      // Place dans l'hémicycle, numérotée de 1 à 650 de l'extrême droite à l'extrême gauche.
+      place: dernier.mandature?.placeHemicycle ? Number(dernier.mandature.placeHemicycle) : null,
       // dateDebut est la date de l'élection : un suppléant ne siège qu'à sa prise de fonction.
       periodes: sieges.map((m) => [m.mandature?.datePriseFonction ?? m.dateDebut, m.dateFin ?? null]),
     });
