@@ -58,6 +58,15 @@ export function Marque({ taille = 36 }: { taille?: number }) {
  * (`placeHemicycle`), de l'extrême gauche à l'extrême droite. Quand la place
  * n'est pas connue, rien n'est entouré et aucune flèche n'est tracée.
  */
+/**
+ * La flèche qui désigne un siège, la même dans le banc et dans la salle.
+ * Elle arrive à plat plutôt qu'en diagonale, parce que le dessin est large et
+ * bas, et part du côté qui laisse de la place.
+ */
+function gesteVersSiege(s: Point | null, sens: 1 | -1) {
+  return s ? montrer(s.x, s.y, 40, sens === 1 ? Math.PI * (5 / 6) : Math.PI / 6, sens) : null;
+}
+
 export function BancHemicycle({
   total,
   rang,
@@ -82,8 +91,7 @@ export function BancHemicycle({
   const s = vue.siege;
   // La flèche part du côté qui laisse de la place : vers l'intérieur du dessin.
   const sens: 1 | -1 = s && s.x > 175 ? -1 : 1;
-  // Elle arrive à plat plutôt qu'en diagonale : le dessin est large et bas.
-  const geste = s ? montrer(s.x, s.y, 40, sens === 1 ? Math.PI * (5 / 6) : Math.PI / 6, sens) : null;
+  const geste = gesteVersSiege(s, sens);
 
   return (
     // Le cadre monte au-dessus des sièges : la flèche et son mot ont besoin de
@@ -156,7 +164,8 @@ export function SalleVotes({
   }, [total, positions, rang]);
 
   const s = vue.siege;
-  const sens = s && s.x > 175 ? -1 : 1;
+  const sens: 1 | -1 = s && s.x > 175 ? -1 : 1;
+  const geste = gesteVersSiege(s, sens);
   return (
     // Le cadre monte au-dessus des sièges : la flèche et son mot ont besoin de
     // cette marge quand le siège est au dernier rang, tout en haut du dessin.
@@ -166,24 +175,23 @@ export function SalleVotes({
       <path d={vue.a} fill="var(--abstention)" />
       <path d={vue.c} fill="var(--contre)" />
       <path d={vue.p} fill="var(--pour)" />
-      {s && (
+      {s && geste && (
         <>
+          <path d={geste.queue} fill="none" stroke="var(--encre)" strokeWidth="2.1" strokeLinecap="round" />
           <path
-            d={`M${(s.x + 58 * sens).toFixed(1)} ${(s.y - 46).toFixed(1)}C${(s.x + 40 * sens).toFixed(1)} ${(s.y - 40).toFixed(1)} ${(s.x + 30 * sens).toFixed(1)} ${(s.y - 34).toFixed(1)} ${(s.x + 15 * sens).toFixed(1)} ${(s.y - 15).toFixed(1)}`}
-            fill="none"
-            stroke="var(--encre)"
-            strokeWidth="2.1"
-            strokeLinecap="round"
-          />
-          <path
-            d={`M${(s.x + 23 * sens).toFixed(1)} ${(s.y - 21).toFixed(1)}L${(s.x + 15 * sens).toFixed(1)} ${(s.y - 15).toFixed(1)}L${(s.x + 23 * sens).toFixed(1)} ${(s.y - 11).toFixed(1)}`}
+            d={geste.pointe}
             fill="none"
             stroke="var(--encre)"
             strokeWidth="2.1"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <text className="banc-mot" x={(s.x + 62 * sens).toFixed(1)} y={(s.y - 46).toFixed(1)} textAnchor={sens === 1 ? 'start' : 'end'}>
+          <text
+            className="banc-mot"
+            x={(geste.depart.x + 5 * sens).toFixed(1)}
+            y={geste.depart.y.toFixed(1)}
+            textAnchor={sens === 1 ? 'start' : 'end'}
+          >
             {mot}
           </text>
           <circle cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r="5.6" fill="none" stroke="var(--encre)" strokeWidth="2" />
