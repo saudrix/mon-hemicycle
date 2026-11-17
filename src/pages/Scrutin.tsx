@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BarreVote, Chargement, Pastille, PositionChip } from '../components';
 import {
   type Amendement,
@@ -9,6 +9,7 @@ import {
   type ScrutinDirect,
   POSITIONS,
   TYPES_SCRUTIN,
+  bancsDeLaSalle,
   formatDate,
   getMeta,
   getScrutinDetail,
@@ -18,6 +19,7 @@ import {
   positionDe,
   positionMajoritaire,
 } from '../data';
+import { SalleVotes } from '../design/Illustrations';
 import { useAsync } from '../hooks';
 import { LIBELLES_NATURE, decouper, portee } from '../lecture';
 
@@ -47,72 +49,94 @@ export function Scrutin() {
   const nomTexte = (dossier && dossiers[dossier]) || lecture.texte;
   const consequence = portee(lecture.nature, !!adopte, lecture.lecture);
 
+  const ecart = Math.abs(pour - contre);
+
   return (
-    <div className="page">
-      <p className="surtitre">
-        {LIBELLES_NATURE[lecture.nature]} · {TYPES_SCRUTIN[type] ?? type} · n° {num}
-      </p>
-      <h1 className="titre-scrutin">{lecture.objet}</h1>
-      <p className="date">{formatDate(date)}</p>
-      {nomTexte &&
-        (dossier ? (
-          <Link to={`/textes/${dossier}`} className="lien-texte">
-            <span>
-              📁 {nomTexte}
-              {lecture.lecture && <small> · {lecture.lecture}</small>}
+    <>
+      {/* Le verdict prend le bandeau : une seule couleur pleine, et c'est le résultat. */}
+      <BandeauVerdict
+        adopte={!!adopte}
+        nature={LIBELLES_NATURE[lecture.nature]}
+        repere={`${TYPES_SCRUTIN[type] ?? type} · n° ${num} · ${formatDate(date)}`}
+        objet={lecture.objet}
+        ecart={type === 'MOC' ? null : ecart}
+      />
+
+      <div className="page">
+        {nomTexte &&
+          (dossier ? (
+            <Link to={`/textes/${dossier}`} className="lien-texte">
+              <span className="lien-texte-corps">
+                <span className="surtitre">Le texte</span>
+                <span>
+                  <b>{nomTexte}</b>
+                  {lecture.lecture && <span className="doux"> · {lecture.lecture}</span>}
+                </span>
+              </span>
+              <Chevron />
+            </Link>
+          ) : (
+            <p className="dossier">{nomTexte}</p>
+          ))}
+
+        {/* Toute la salle, un siège par député, colorié par son vote. */}
+        <section className="bloc bloc-salle">
+          <div className="bloc-tete">
+            <h2>Toute la salle</h2>
+            <span className="bloc-tete-note">vu du perchoir</span>
+          </div>
+          <SalleDuScrutin meta={meta} detail={detail} monDepute={monDepute} />
+          <p className="legende-votes">
+            <span className="t-p">
+              <i /> {pour} pour
             </span>
-            <span aria-hidden>›</span>
-          </Link>
-        ) : (
-          <p className="dossier">📁 {nomTexte}</p>
-        ))}
-
-      <section className={`resultat ${adopte ? 'adopte' : 'rejete'}`}>
-        <strong>{adopte ? 'Adopté' : 'Rejeté'}</strong>
-        {type === 'MOC' ? (
-          <p>{pour} députés ont voté la censure (majorité requise : 289).</p>
-        ) : (
-          <>
-            <div className="resultat-chiffres">
-              <span className="t-p">
-                <b>{pour}</b> pour
-              </span>
-              <span className="t-c">
-                <b>{contre}</b> contre
-              </span>
-              <span className="t-a">
-                <b>{abs}</b> abstentions
-              </span>
-            </div>
-            <BarreVote pour={pour} contre={contre} abs={abs} />
-            <small>
-              {votants} votants{nv ? `, ${nv} non-votant${nv > 1 ? 's' : ''}` : ''} · {detail.typeMajorite}
-            </small>
-          </>
-        )}
-      </section>
-
-      {choix && monDepute != null && monDepute >= 0 && (
-        <Link to={`/deputes/${meta.deputes[monDepute].id}`} className="mon-vote">
-          <span>
-            Mon député, {meta.deputes[monDepute].prenom} {meta.deputes[monDepute].nom}
-          </span>
-          {maPosition ? <PositionChip position={maPosition} /> : <em>n'a pas pris part au vote</em>}
-        </Link>
-      )}
-
-      {consequence && (
-        <section className="portee">
-          <h2>Ce que ça change</h2>
-          <p>{consequence}</p>
+            <span className="t-c">
+              <i /> {contre} contre
+            </span>
+            <span className="t-a">
+              <i /> {abs} abst.
+            </span>
+            <span className="t-n">
+              <i /> {nv} non-votant{nv > 1 ? 's' : ''}
+            </span>
+          </p>
         </section>
-      )}
 
-      {detail.amdt && <Expose a={detail.amdt} meta={meta} />}
+        <section className={`resultat ${adopte ? 'adopte' : 'rejete'}`}>
+          {type === 'MOC' ? (
+            <p>{pour} députés ont voté la censure (majorité requise : 289).</p>
+          ) : (
+            <>
+              <BarreVote pour={pour} contre={contre} abs={abs} />
+              <small>
+                {votants} votants{nv ? `, ${nv} non-votant${nv > 1 ? 's' : ''}` : ''} · {detail.typeMajorite}
+              </small>
+            </>
+          )}
+        </section>
 
-      <Link to={`/carte?scrutin=${num}`} className="lien-carte">
-        🗺️ Voir ce vote sur la carte de France
-      </Link>
+        {choix && monDepute != null && monDepute >= 0 && (
+          <Link to={`/deputes/${meta.deputes[monDepute].id}`} className="mon-vote">
+            <span>
+              Mon député, {meta.deputes[monDepute].prenom} {meta.deputes[monDepute].nom}
+            </span>
+            {maPosition ? <PositionChip position={maPosition} /> : <em>n'a pas pris part au vote</em>}
+          </Link>
+        )}
+
+        {consequence && (
+          <section className="portee">
+            <h2>Ce que ça change</h2>
+            <p className={`portee-dit ${adopte ? 'adopte' : 'rejete'}`}>{consequence}</p>
+          </section>
+        )}
+
+        {detail.amdt && <Expose a={detail.amdt} meta={meta} />}
+
+        <Link to={`/carte?scrutin=${num}`} className="lien-carte">
+          <span>Ce vote sur la carte de France</span>
+          <Chevron />
+        </Link>
 
       <section>
         <h2>Vote des groupes</h2>
@@ -129,14 +153,105 @@ export function Scrutin() {
         </p>
       </section>
 
-      <p className="note">Intitulé officiel : {titre}</p>
-      {detail.demandeur && <p className="note">Scrutin demandé par : {detail.demandeur}</p>}
-      <p className="note">
-        <a href={`https://www.assemblee-nationale.fr/dyn/17/scrutins/${num}`} target="_blank" rel="noreferrer">
-          Voir sur assemblee-nationale.fr ↗
-        </a>
-      </p>
-    </div>
+        <p className="note">Intitulé officiel : {titre}</p>
+        {detail.demandeur && <p className="note">Scrutin demandé par : {detail.demandeur}</p>}
+        <p className="note">
+          <a href={`https://www.assemblee-nationale.fr/dyn/17/scrutins/${num}`} target="_blank" rel="noreferrer">
+            Voir sur assemblee-nationale.fr ↗
+          </a>
+        </p>
+      </div>
+    </>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg className="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+/**
+ * Le bandeau d'un scrutin. Le vert et le corail ne disent ici qu'une chose :
+ * le résultat du vote. C'est la seule couleur pleine de l'écran.
+ */
+function BandeauVerdict({
+  adopte,
+  nature,
+  repere,
+  objet,
+  ecart,
+}: {
+  adopte: boolean;
+  nature: string;
+  repere: string;
+  objet: string;
+  ecart: number | null;
+}) {
+  const navigate = useNavigate();
+  return (
+    <header className={`bandeau bandeau-verdict ${adopte ? 'adopte' : 'rejete'}`}>
+      <div className="bandeau-marque">
+        <button type="button" className="retour" onClick={() => navigate(-1)} aria-label="Revenir à l'écran précédent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+        <span className="badge-encre">{nature}</span>
+        <span className="verdict-repere">{repere}</span>
+      </div>
+      <h1 className="verdict">
+        {adopte ? 'Adopté' : 'Rejeté'}
+        {ecart != null && ecart > 0 && (
+          <small>
+            de {ecart} voix
+          </small>
+        )}
+      </h1>
+      <p className="verdict-objet">{objet}</p>
+    </header>
+  );
+}
+
+/** Chaque siège de la salle prend la couleur du vote de celui qui l'occupe. */
+function SalleDuScrutin({
+  meta,
+  detail,
+  monDepute,
+}: {
+  meta: Meta;
+  detail: { grp: GroupeVote[] };
+  monDepute: number | null | false;
+}) {
+  const { total, positions, rang } = useMemo(() => {
+    const bancs = bancsDeLaSalle(meta);
+    const positions = new Map<number, Position>();
+    for (const g of detail.grp) {
+      for (const [p, indices] of Object.entries(g[7]) as [Position, number[]][]) {
+        for (const i of indices) {
+          const r = bancs.rang.get(meta.deputes[i]?.id ?? '');
+          if (r != null) positions.set(r, p);
+        }
+      }
+    }
+    const moi = typeof monDepute === 'number' && monDepute >= 0 ? meta.deputes[monDepute] : null;
+    return { total: bancs.total, positions, rang: moi ? (bancs.rang.get(moi.id) ?? null) : null };
+  }, [meta, detail, monDepute]);
+
+  const compte = { p: 0, c: 0, a: 0, n: 0 };
+  for (const p of positions.values()) compte[p]++;
+  const moi = typeof monDepute === 'number' && monDepute >= 0 ? meta.deputes[monDepute] : null;
+
+  return (
+    <SalleVotes
+      total={total}
+      positions={positions}
+      rang={rang}
+      mot={moi?.civ === 'Mme' ? 'elle' : 'lui'}
+      description={`Hémicycle de ${total} sièges vu du perchoir : ${compte.p} pour en vert, ${compte.c} contre en corail, ${compte.a} abstentions en ambre, ${compte.n} non-votants en gris.`}
+    />
   );
 }
 

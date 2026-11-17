@@ -1,0 +1,91 @@
+/* =============================================================================
+   Encre et couleur - les jetons
+   =============================================================================
+   Un trait d'encre marine, des aplats francs, des dessins faits à la main.
+   Suivre un député est une affaire sérieuse ET on peut la rendre accueillante :
+   l'illustration porte la chaleur, la donnée reste nue.
+
+   Les ratios de contraste notés ici sont mesurés, pas estimés. Règle du système :
+   rien d'informatif ne descend sous 4,5:1, et aucune opacité ne se pose sur un
+   bloc de texte - c'est par là que les gris dérivent sans qu'on s'en aperçoive.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------- Marque */
+  --encre: #17213d;
+  --jaune: #ffd84d;
+  --creme: #fbf7ef;
+  --gris-illu: #ebecf0; /* le fond des illustrations, et lui seul */
+  --blanc: #ffffff;
+
+  /* ------------------------------------------------------- Les trois votes */
+  /* Le vert, le corail et l'ambre ne disent QUE un vote. Quand une de ces
+     trois couleurs apparaît, c'est qu'il est question d'un vote. */
+  --pour: #2fbf71;
+  --contre: #ff6f5e;
+  --abstention: #f0b429;
+  --absent: rgba(23, 33, 61, 0.2);
+
+  /* Les mêmes en version lisible sur fond clair, pour les badges et le texte.
+     Mesurés : 5,79:1 · 4,85:1 · 5,94:1 */
+  --pour-encre: #0f6b3f;
+  --pour-fond: #dcf7e7;
+  --contre-encre: #b9381b;
+  --contre-fond: #ffe6e2;
+  --abstention-encre: #7a5410;
+  --abstention-fond: #fbefd8;
+
+  /* ------------------------------------------------------- Les deux mesures */
+  /* Le violet dit la commission, l'encre la séance. Le violet ne dit JAMAIS un
+     vote : c'est pour ça que l'abstention est passée à l'ambre. */
+  --commission: #b388ff;
+  --commission-encre: #6b3fbf; /* 4,6:1 sur blanc, pour le texte et les chiffres */
+  --commission-fond: #f3edff;
+  --seance: #17213d;
+
+  /* ------------------------------------------------------ Les gris calculés */
+  /* Un seul gris par fond, calculé et non choisi à l'œil. */
+  --texte-second: rgba(23, 33, 61, 0.68); /* 5,40 blanc · 5,56 crème · 4,89 gris illu */
+  --texte-sur-marque: rgba(23, 33, 61, 0.86); /* 8,18 jaune · 4,73 au pire sur violet */
+  --texte-sur-encre: rgba(251, 247, 239, 0.6); /* 6,19:1 */
+  --trait-leger: rgba(23, 33, 61, 0.16);
+  --trait-moyen: rgba(23, 33, 61, 0.26);
+
+  /* ------------------------------------------------------------ Typographie */
+  --titres: 'Outfit', system-ui, -apple-system, sans-serif; /* verdicts, noms, chiffres */
+  --texte-police: 'Inter', system-ui, -apple-system, sans-serif; /* tout le courant */
+  --manuscrit: 'Caveat', cursive; /* annotations, jamais une donnée */
+
+  /* ----------------------------------------------------------------- Formes */
+  --r-section: 28px;
+  --r-carte: 24px;
+  --r-petit: 22px;
+  --r-puce: 999px;
+  --r-bandeau: 0 0 36px 36px;
+  --trait: 2px solid var(--encre);
+  --trait-fin: 1.4px solid var(--gris-illu);
+
+  /* ------------------------------------------------------------- Compatible */
+  /* Les variables de l'application d'origine, remappées sur la palette :
+     tout l'existant bascule sans toucher à un seul composant. */
+  --fond: var(--blanc);
+  --surface: var(--creme);
+  --texte: var(--encre);
+  --doux: var(--texte-second);
+  --ligne: var(--trait-leger);
+  --marine: var(--encre);
+  --accent: var(--encre);
+  --abs: var(--abstention);
+  --nv: var(--absent);
+  --vide: var(--gris-illu);
+  --rayon: var(--r-carte);
+  --nav: 64px;
+
+  color-scheme: light;
+  font-family: var(--texte-police);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* La direction est claire par nature : le jaune et le crème ne survivent pas à
+   une inversion, et un thème sombre bâclé casse tous les ratios ci-dessus.
+   Un vrai thème sombre serait une deuxième direction, pas une option. */

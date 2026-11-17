@@ -13,8 +13,46 @@ export type Depute = {
   circo: number | null;
   region: string | null;
   actif: boolean;
+  /** Place dans l'hémicycle, de 1 (extrême droite) à 650 (extrême gauche). */
+  place: number | null;
   periodes: [string, string | null][];
 };
+
+/**
+ * Les bancs de la salle, de l'extrême gauche à l'extrême droite.
+ *
+ * Les groupes sont rangés selon leur place moyenne réelle - l'axe politique
+ * sort tout seul des données - et chacun est posé d'un bloc. La numérotation
+ * des places suit les rangées physiques, que l'open data ne publie pas : la
+ * placer au siège près donnerait des bancs en confettis. Le numéro affiché
+ * reste exact, sa position dans le dessin est indicative.
+ */
+export function bancsDeLaSalle(meta: Meta) {
+  const assis = meta.deputes.filter((d) => d.actif && d.place != null);
+  const parGroupe = new Map<string, Depute[]>();
+  for (const d of assis) {
+    const k = d.groupe ?? '';
+    const l = parGroupe.get(k);
+    if (l) l.push(d);
+    else parGroupe.set(k, [d]);
+  }
+  const moyenne = (l: Depute[]) => l.reduce((s, d) => s + d.place!, 0) / l.length;
+  const ordre = [...parGroupe].sort((a, b) => moyenne(b[1]) - moyenne(a[1]));
+
+  const rang = new Map<string, number>();
+  const rangsParGroupe = new Map<string, Set<number>>();
+  let i = 0;
+  for (const [groupe, membres] of ordre) {
+    const rangs = new Set<number>();
+    for (const d of [...membres].sort((a, b) => b.place! - a.place!)) {
+      rang.set(d.id, i);
+      rangs.add(i);
+      i++;
+    }
+    rangsParGroupe.set(groupe, rangs);
+  }
+  return { total: assis.length, rang, rangsParGroupe };
+}
 
 export type Meta = {
   genereLe: string;
@@ -185,7 +223,7 @@ const dateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long'
 const dateCourteFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 export const formatDate = (iso: string) => dateFmt.format(new Date(`${iso}T12:00:00`));
 export const formatDateCourte = (iso: string) => dateCourteFmt.format(new Date(`${iso}T12:00:00`));
-export const pct = (x: number | null) => (x == null || Number.isNaN(x) ? '–' : `${Math.round(x * 100)} %`);
+export const pct = (x: number | null) => (x == null || Number.isNaN(x) ? '-' : `${Math.round(x * 100)} %`);
 
 // ---------- Présence ----------
 

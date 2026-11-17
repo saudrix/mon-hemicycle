@@ -11,6 +11,7 @@ import {
   lireChoix,
   trouverCirconscription,
 } from '../data';
+import { Illu } from '../design/Illustrations';
 import { useAsync } from '../hooks';
 import { suivreDepute } from '../push';
 import { DeputeVue } from './Depute';
@@ -31,21 +32,14 @@ export function MonDepute() {
   const depute = deputeDuChoix(meta.data, choix);
 
   if (choix && depute) {
-    return (
-      <>
-        <div className="adresse-choisie">
-          <span>📍 {choix.label}</span>
-          <button className="lien" onClick={() => choisir(null)}>
-            Changer
-          </button>
-        </div>
-        <DeputeVue id={depute.id} />
-      </>
-    );
+    return <DeputeVue id={depute.id} variante="mien" choix={choix} onChangerAdresse={() => choisir(null)} />;
   }
 
   return (
-    <div className="page">
+    <div className="page page-recherche">
+      <div className="recherche-illu">
+        <Illu nom="rechercheVide" alt="" />
+      </div>
       <h1>Qui est mon député ?</h1>
       <p className="intro">
         Indiquez votre adresse pour retrouver la personne qui vous représente à l'Assemblée nationale, ses votes et sa

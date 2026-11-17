@@ -1,0 +1,158 @@
+/* =============================================================================
+   Encre et couleur - le socle
+   =============================================================================
+   Remise à zéro, échelle typographique, états partagés. Rien d'ici ne connaît
+   un écran en particulier.
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--blanc);
+  color: var(--encre);
+  font-family: var(--texte-police);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------ Typographie */
+/* Outfit porte les verdicts, les noms et les chiffres. Inter porte le reste.
+   Caveat n'annote jamais une donnée, seulement un repère. */
+
+h1,
+h2,
+h3 {
+  font-family: var(--titres);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h1 {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.82rem;
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  margin: 1.6rem 0 0.7rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+small {
+  font-size: 0.78rem;
+}
+
+/* Les chiffres s'alignent en colonne : un tableau de taux ne doit pas danser. */
+.chiffre,
+.stat-valeur,
+.synthese-valeur,
+.compte,
+.date,
+.dates,
+.resultat-chiffres,
+.ligne-commission span,
+.ligne-vote-pied,
+.carte-scrutin-pied {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: var(--encre);
+  text-underline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* L'anneau de focus est d'encre et respire : il doit se voir sur crème comme
+   sur jaune, donc jamais la couleur d'accent sur un fond coloré. */
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 2.5px solid var(--encre);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------ États */
+
+.etat {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1rem 0;
+  color: var(--texte-second);
+}
+
+.etat.erreur {
+  color: var(--contre-encre);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid var(--trait-leger);
+  border-top-color: var(--encre);
+  animation: tourne 0.8s linear infinite;
+}
+
+@keyframes tourne {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.intro {
+  margin-top: 0;
+  color: var(--texte-second);
+}
+
+.note {
+  font-size: 0.8rem;
+  color: var(--texte-second);
+}
+
+/* Un lien-bouton reste un lien : souligné, sans fond, cible confortable. */
+.lien {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--encre);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

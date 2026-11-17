@@ -48,16 +48,6 @@ export function Jauge({ valeur, couleur }: { valeur: number | null; couleur?: st
   );
 }
 
-export function Stat({ label, valeur, detail }: { label: string; valeur: ReactNode; detail?: ReactNode }) {
-  return (
-    <div className="stat">
-      <span className="stat-valeur">{valeur}</span>
-      <span className="stat-label">{label}</span>
-      {detail && <span className="stat-detail">{detail}</span>}
-    </div>
-  );
-}
-
 export function CarteDepute({ depute, groupe, taux }: { depute: Depute; groupe?: Groupe; taux?: number | null }) {
   return (
     <Link to={`/deputes/${depute.id}`} className="carte-depute">
@@ -72,10 +62,10 @@ export function CarteDepute({ depute, groupe, taux }: { depute: Depute; groupe?:
   );
 }
 
-export function Aide({ children }: { children: ReactNode }) {
+export function Aide({ children, titre = 'Comment lire ce chiffre ?' }: { children: ReactNode; titre?: string }) {
   return (
     <details className="aide">
-      <summary>Comment lire ce chiffre ?</summary>
+      <summary>{titre}</summary>
       <div>{children}</div>
     </details>
   );

@@ -13,10 +13,13 @@ import {
   getMeta,
   getScrutinDetail,
   getScrutins,
+  lireChoix,
   nomComplet,
   photo,
   positionDe,
 } from '../data';
+import { BandeauPage, BandeauRetour } from '../design/Bandeau';
+import { centre, montrer, texteSur } from '../design/dessins';
 import { useAsync } from '../hooks';
 
 const COULEURS_VOTE: Record<Position | 'absent', string> = {
@@ -117,43 +120,81 @@ function Vue({
   const cases = [...parCirco.entries()].filter(([, x]) => SANS_CONTOUR.includes(x.depute.depNum!));
   const choisi = selection ? parCirco.get(selection) : undefined;
 
+  // Ma circonscription, repérée sur la métropole quand elle y est.
+  const mienne = useMemo(() => {
+    const c = lireChoix();
+    if (!c) return null;
+    const cle = `${c.depNum}-${c.circo}`;
+    const tracee = metro.circos.find((x) => x.k === cle);
+    const pt = tracee ? centre(tracee.d) : null;
+    if (!pt) return null;
+    const u = metro.largeur / 10;
+    return { cle, pt, u, fleche: montrer(pt.x, pt.y, u, Math.PI / 4), depute: parCirco.get(cle)?.depute ?? null };
+  }, [metro, parCirco]);
+
   return (
-    <div className="page">
+    <>
       {titre ? (
-        <>
-          <p className="surtitre">Carte du vote · scrutin n° {titre.num}</p>
-          <h1 className="titre-scrutin">{titre.titre}</h1>
-          <p className="date">
-            {formatDate(titre.date)} ·{' '}
-            <Link to={`/scrutins/${titre.num}`}>détail du scrutin</Link> · <Link to="/carte">carte des groupes</Link>
-          </p>
-        </>
+        <BandeauRetour surtitre={`Carte du vote · scrutin n° ${titre.num}`} titre={titre.titre} />
       ) : (
-        <>
-          <h1>La carte de l'Assemblée</h1>
-          <p className="intro">Chaque circonscription prend la couleur du groupe de son député. Touchez-en une pour voir qui y siège.</p>
-        </>
+        <BandeauPage
+          titre="Qui siège où ?"
+          intro="Chaque circonscription prend la couleur du groupe de son député."
+        />
       )}
 
-      <div className="legende-carte" role="group" aria-label="Légende">
-        {legende.map(({ cat, n }) => (
-          <button
-            key={cat}
-            aria-pressed={filtre === cat}
-            onClick={() => setFiltre(filtre === cat ? null : cat)}
-            title={detail ? undefined : meta.groupes[cat]?.nom}
-          >
-            <i style={{ background: cat === 'vacant' ? 'var(--vide)' : couleur(cat) }} />
-            {cat === 'vacant' ? 'Siège vacant' : libelle(cat)} <b>{n}</b>
-          </button>
-        ))}
-      </div>
+      <div className="page">
+        {titre && (
+          <p className="date">
+            {formatDate(titre.date)} · <Link to={`/scrutins/${titre.num}`}>détail du scrutin</Link> ·{' '}
+            <Link to="/carte">carte des groupes</Link>
+          </p>
+        )}
 
-      <svg className="carte" viewBox={`-5 -5 ${metro.largeur + 10} ${metro.hauteur + 10}`} role="img" aria-label={metro.nom}>
-        {metro.circos.map((c) => trace(c.k, c.d))}
-      </svg>
+        <section className="bloc bloc-carte">
+          <div className="bloc-tete">
+            <h2>La métropole</h2>
+            <span className="bloc-tete-note">{metro.circos.length} circonscriptions</span>
+          </div>
+          <svg className="carte" viewBox={`-5 -5 ${metro.largeur + 10} ${metro.hauteur + 10}`} role="img" aria-label={metro.nom}>
+            {metro.circos.map((c) => trace(c.k, c.d))}
+            {mienne && !filtre && (
+              <g className="repere-mien" aria-hidden style={{ strokeWidth: mienne.u / 15 }}>
+                <path d={mienne.fleche.queue} fill="none" />
+                <path d={mienne.fleche.pointe} fill="none" />
+                <circle cx={mienne.pt.x} cy={mienne.pt.y} r={mienne.u / 9} className="repere-point" />
+              </g>
+            )}
+          </svg>
 
-      {choisi && <Fiche depute={choisi.depute} meta={meta} position={detail ? (positionDe(detail, choisi.index) ?? null) : undefined} />}
+          {choisi ? (
+            <Fiche depute={choisi.depute} meta={meta} position={detail ? (positionDe(detail, choisi.index) ?? null) : undefined} />
+          ) : (
+            mienne?.depute && <Fiche depute={mienne.depute} meta={meta} surtitre="Votre circonscription" />
+          )}
+        </section>
+
+        <p className="note note-carte">
+          <strong>Touchez</strong> une circonscription pour savoir qui y siège, un groupe pour ne garder que lui.
+          {detail ? ' Les couleurs sont celles des votes.' : ' Les couleurs sont celles des groupes, pas des votes.'}
+        </p>
+
+        <div className="bloc-tete titre-section">
+          <h2>{detail ? 'Les positions' : 'Les groupes'}</h2>
+        </div>
+        <div className="legende-carte" role="group" aria-label="Légende">
+          {legende.map(({ cat, n }) => (
+            <button
+              key={cat}
+              aria-pressed={filtre === cat}
+              onClick={() => setFiltre(filtre === cat ? null : cat)}
+              title={detail ? undefined : meta.groupes[cat]?.nom}
+            >
+              <i style={{ background: cat === 'vacant' ? 'var(--vide)' : couleur(cat) }} />
+              {cat === 'vacant' ? 'Siège vacant' : libelle(cat)} <b>{n}</b>
+            </button>
+          ))}
+        </div>
 
       <div className="encarts">
         {encarts.map((z) => (
@@ -174,7 +215,11 @@ function Vue({
             <button
               key={cle}
               className={selection === cle ? 'case choisie' : 'case'}
-              style={{ background: couleur(cat), opacity: filtre && filtre !== cat ? 0.15 : 1 }}
+              style={{
+                background: couleur(cat),
+                color: texteSur(detail ? undefined : meta.groupes[cat]?.couleur),
+                opacity: filtre && filtre !== cat ? 0.15 : 1,
+              }}
               onClick={() => setSelection(cle)}
               title={`${depute.dep}, ${depute.circo}e`}
             >
@@ -183,16 +228,28 @@ function Vue({
           );
         })}
       </div>
-      <p className="note">FE : Français établis hors de France (11 circonscriptions).</p>
-    </div>
+        <p className="note">FE : Français établis hors de France (11 circonscriptions).</p>
+      </div>
+    </>
   );
 }
 
-function Fiche({ depute, meta, position }: { depute: Depute; meta: Meta; position?: Position | null }) {
+function Fiche({
+  depute,
+  meta,
+  position,
+  surtitre,
+}: {
+  depute: Depute;
+  meta: Meta;
+  position?: Position | null;
+  surtitre?: string;
+}) {
   return (
     <Link to={`/deputes/${depute.id}`} className="fiche-carte">
       <img src={photo(depute.id)} alt="" />
       <div>
+        {surtitre && <span className="surtitre">{surtitre}</span>}
         <strong>{nomComplet(depute)}</strong>
         <small>{circonscription(depute)}</small>
         <span className="fiche-carte-pied">
@@ -200,7 +257,9 @@ function Fiche({ depute, meta, position }: { depute: Depute; meta: Meta; positio
           {position !== undefined && (position ? <PositionChip position={position} /> : <em>n'a pas voté</em>)}
         </span>
       </div>
-      <span aria-hidden>›</span>
+      <svg className="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M9 5l7 7-7 7" />
+      </svg>
     </Link>
   );
 }

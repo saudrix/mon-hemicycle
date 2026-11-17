@@ -24,12 +24,6 @@ export function App() {
   return (
     <HashRouter>
       <HautDePage />
-      <header className="barre-titre">
-        <span className="logo" aria-hidden>
-          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
-        </span>
-        <span>Mon Hémicycle</span>
-      </header>
       <main>
         <Routes>
           <Route path="/" element={<MonDepute />} />
