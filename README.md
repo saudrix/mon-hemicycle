@@ -87,7 +87,9 @@ affiche le vote tel qu'il a été enregistré.
 | Photos des députés | Site de l'Assemblée nationale, chargées à la volée | Droits de l'Assemblée nationale |
 
 **Vie privée** : l'adresse saisie est envoyée uniquement au service de géocodage de l'IGN. Seule la circonscription
-trouvée est conservée, dans le stockage local du téléphone. Aucun compte, aucun traceur, aucun serveur à nous.
+trouvée est conservée, dans le stockage local du téléphone. Aucun compte, aucun traceur, aucune mesure d'audience.
+Les polices de caractères (Outfit, Inter, Caveat) sont chargées depuis Google Fonts : comme pour tout site qui les
+utilise, Google reçoit l'adresse IP de l'appareil au chargement.
 
 ## Architecture
 

@@ -97,7 +97,7 @@ export function Scrutin() {
               <i /> {abs} abst.
             </span>
             <span className="t-n">
-              <i /> {nv} abs.
+              <i /> {nv} non-votant{nv > 1 ? 's' : ''}
             </span>
           </p>
         </section>

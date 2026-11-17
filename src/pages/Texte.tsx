@@ -67,7 +67,10 @@ export function TextePage() {
               {texte.e.length} étape{texte.e.length > 1 ? 's' : ''}
             </span>
           </div>
-          <p className="note">Un rejet n’arrête pas le texte : il repart à l’autre chambre.</p>
+          {/* Après un rejet en lecture ordinaire, la navette continue ; pas après une lecture définitive. */}
+          {texte.e.some(([, etape, , issue]) => issue === 'rejeté' && !/définitive/i.test(etape)) && (
+            <p className="note">Un rejet n’arrête pas forcément le texte : en cours de navette, il repart à l’autre chambre.</p>
+          )}
           <ol className="parcours">
             {texte.e.map(([lieu, etape, date, issue], i) => (
               <li key={i} className={i === texte.e.length - 1 ? 'actuelle' : undefined}>
