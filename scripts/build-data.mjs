@@ -39,12 +39,22 @@ async function download(name, url) {
   const file = join(CACHE, url.split('/').pop());
   const fresh = existsSync(file) && Date.now() - statSync(file).mtimeMs < MAX_AGE_MS;
   if (!(offline && existsSync(file)) && !fresh) {
-    console.log(`↓ ${name}`);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${url} : HTTP ${res.status}`);
-    // Écrit à côté puis renomme : une archive interrompue ne remplace jamais la précédente.
-    await pipeline(Readable.fromWeb(res.body), createWriteStream(`${file}.part`));
-    renameSync(`${file}.part`, file);
+    // Le serveur de l'Assemblée coupe parfois la connexion en plein téléchargement : on réessaie.
+    for (let essai = 1; ; essai++) {
+      console.log(`↓ ${name}${essai > 1 ? ` (essai ${essai})` : ''}`);
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${url} : HTTP ${res.status}`);
+        // Écrit à côté puis renomme : une archive interrompue ne remplace jamais la précédente.
+        await pipeline(Readable.fromWeb(res.body), createWriteStream(`${file}.part`));
+        renameSync(`${file}.part`, file);
+        break;
+      } catch (e) {
+        if (essai >= 4) throw e;
+        console.warn(`  ${name} : ${e.message}, nouvel essai dans ${essai * 10} s`);
+        await new Promise((r) => setTimeout(r, essai * 10_000));
+      }
+    }
   }
   return readFileSync(file);
 }
