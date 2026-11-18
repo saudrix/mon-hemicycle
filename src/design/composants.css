@@ -2159,8 +2159,7 @@ a.mon-vote {
 
 /* -----------------------------------------------------------------------
    COMMENT TRAVAILLE L'ASSEMBLÉE
-   Une page de lecture : des sections repliables, un lexique, et le même
-   repli que les amendements. Les liens qui y mènent depuis les autres écrans
+   Une page de lecture : une section par titre, son « En bref », un lexique. Les liens qui y mènent depuis les autres écrans
    portent un chevron, comme « Ce vote sur la carte de France ».
    -------------------------------------------------------------------- */
 
@@ -2171,14 +2170,23 @@ a.mon-vote {
   gap: 0.45rem;
 }
 
-.comprendre-section > summary h2 {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.3;
+.comprendre-section {
+  margin-top: 2rem;
+  scroll-margin-top: 1rem;
 }
 
-.comprendre-section {
-  scroll-margin-top: 1rem;
+.comprendre-section > h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+/* L'essentiel de la section, pour qui ne lira pas la suite. */
+.en-bref {
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--r-petit);
+  background: var(--creme);
 }
 
 .comprendre-section p,
@@ -2268,4 +2276,44 @@ a.mon-vote {
 .titre-liste-reunions {
   margin: 1.2rem 0 0.5rem;
   font-size: 0.95rem;
+}
+
+/* La carte en liste : département par département, une ligne par circonscription. */
+.liste-circos h3 {
+  margin: 1.1rem 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.liste-circos h3 small {
+  color: var(--texte-second);
+  font-weight: 500;
+}
+
+.liste-circos ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.liste-circos a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--trait-leger);
+  color: inherit;
+  text-decoration: none;
+}
+
+.liste-circos-num {
+  flex: none;
+  width: 2.2rem;
+  color: var(--texte-second);
+  font-size: 0.85rem;
+}
+
+.liste-circos-nom {
+  flex: 1;
+  min-width: 0;
 }

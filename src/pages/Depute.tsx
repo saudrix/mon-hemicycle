@@ -1,4 +1,5 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo } from 'react';
+import { useEtatDePage } from '../navigation';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Aide, Chargement, Jauge, Pastille, PositionChip } from '../components';
 import { BancHemicycle, Illu, JaugeArc, Marque, type MoisPresence, MoisParMois, illuPosition } from '../design/Illustrations';
@@ -110,8 +111,8 @@ function Fiche({
   medianes: Medianes;
 }) {
   const depute = meta.deputes.find((d) => d.id === id);
-  const [onglet, setOnglet] = useState<'votes' | 'commissions'>('votes');
-  const [filtre, setFiltre] = useState<'tous' | 'solennels' | 'divergents'>('tous');
+  const [onglet, setOnglet] = useEtatDePage<'votes' | 'commissions'>('onglet', 'votes');
+  const [filtre, setFiltre] = useEtatDePage<'tous' | 'solennels' | 'divergents'>('filtre', 'tous');
 
   const stats = useMemo(() => {
     if (!depute) return null;
@@ -424,7 +425,7 @@ function ListeVotes({
   filtre: 'tous' | 'solennels' | 'divergents';
   setFiltre: (f: 'tous' | 'solennels' | 'divergents') => void;
 }) {
-  const [limite, setLimite] = useState(30);
+  const [limite, setLimite] = useEtatDePage('limite-votes', 30);
   const votes = activite.votes.filter(([num, position, majorite]) => {
     if (filtre === 'solennels') return parNumero.get(num)?.[2] === 'SPS';
     if (filtre === 'divergents') return position !== 'n' && positionMajoritaire(majorite) !== position;

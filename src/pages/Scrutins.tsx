@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState } from 'react';
+import { useEtatDePage } from '../navigation';
 import { Link } from 'react-router-dom';
 import { Chargement } from '../components';
 import { Notifications } from '../Notifications';
@@ -65,10 +66,10 @@ export function Scrutins() {
       ]),
     [],
   );
-  const [q, setQ] = useState('');
-  const [filtre, setFiltre] = useState<Filtre>('tous');
+  const [q, setQ] = useEtatDePage('recherche', '');
+  const [filtre, setFiltre] = useEtatDePage<Filtre>('filtre', 'tous');
   const [groupement, setGroupementEtat] = useState<Groupement>(lireGroupement);
-  const [limite, setLimite] = useState(PAS);
+  const [limite, setLimite] = useEtatDePage('limite', PAS);
   const recherche = useDeferredValue(q);
 
   const setGroupement = (g: Groupement) => {
@@ -338,7 +339,12 @@ function Votes({ liste, ctx, avecTexte }: { liste: ScrutinResume[]; ctx: Context
           ))}
         </ul>
       )}
-      <BlocAmendements key={String(ctx.enRecherche)} liste={amendements} mes={ctx.mes} ouvertParDefaut={ctx.enRecherche} />
+      <BlocAmendements
+        key={String(ctx.enRecherche)}
+        liste={amendements}
+        mes={ctx.mes}
+        ouvertParDefaut={ctx.enRecherche}
+      />
     </>
   );
 }

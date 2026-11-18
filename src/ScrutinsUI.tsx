@@ -1,7 +1,7 @@
 // Briques communes aux listes de scrutins : carte d'un vote, ligne compacte d'amendement,
 // bloc d'amendements repliable, position de mon député.
 
-import { useState } from 'react';
+import { useEtatDePage } from './navigation';
 import { Link } from 'react-router-dom';
 import { BarreVote } from './components';
 import { type MesVotes, type ScrutinResume, enMandat, formatDate, formatDateCourte } from './data';
@@ -105,8 +105,10 @@ export function BlocAmendements({
   ouvertParDefaut?: boolean;
   avecDate?: boolean;
 }) {
-  const [ouvert, setOuvert] = useState(ouvertParDefaut);
-  const [limite, setLimite] = useState(30);
+  // Le bloc reste ouvert au retour arrière. Son nom : son premier scrutin, unique dans l'écran.
+  const nom = `amendements-${liste[0]?.[0]}-${ouvertParDefaut}`;
+  const [ouvert, setOuvert] = useEtatDePage(`${nom}:ouvert`, ouvertParDefaut);
+  const [limite, setLimite] = useEtatDePage(`${nom}:limite`, 30);
   if (!liste.length) return null;
   const adoptes = liste.filter((s) => s[3]).length;
   return (

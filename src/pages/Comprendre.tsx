@@ -18,18 +18,49 @@ export function LienComprendre({ section, children }: { section: SectionComprend
   );
 }
 
-const SECTIONS: { id: SectionComprendre; titre: string; contenu: () => ReactNode }[] = [
-  { id: 'loi', titre: 'Le chemin d’une loi', contenu: CheminLoi },
-  { id: 'votes', titre: 'La séance et les votes', contenu: Votes },
-  { id: 'motions', titre: 'Le 49.3, la censure et les motions', contenu: Motions },
-  { id: 'commissions', titre: 'Les commissions et les autres réunions', contenu: Commissions },
-  { id: 'mesures', titre: 'Ce que mesure l’application, et ce qu’elle ne mesure pas', contenu: Mesures },
+// « En bref » : l'essentiel de la section en une ou deux phrases, pour qui ne lira pas la suite.
+const SECTIONS: { id: SectionComprendre; titre: string; enBref: string; contenu: () => ReactNode }[] = [
+  {
+    id: 'loi',
+    titre: 'Le chemin d’une loi',
+    enBref:
+      'Un texte passe en commission puis en séance, à l’Assemblée et au Sénat, jusqu’à ce que les deux chambres l’adoptent dans les mêmes termes. En cas de désaccord, l’Assemblée a le plus souvent le dernier mot.',
+    contenu: CheminLoi,
+  },
+  {
+    id: 'votes',
+    titre: 'La séance et les votes',
+    enBref:
+      'L’application montre les votes nominatifs, appelés scrutins publics. Un texte est adopté s’il a plus de voix pour que de voix contre : les abstentions ne comptent pas.',
+    contenu: Votes,
+  },
+  {
+    id: 'motions',
+    titre: 'Le 49.3, la censure et les motions',
+    enBref:
+      'Avec le 49.3, le Gouvernement fait adopter un texte sans vote. Les députés peuvent alors le renverser par une motion de censure, s’ils réunissent 289 voix.',
+    contenu: Motions,
+  },
+  {
+    id: 'commissions',
+    titre: 'Les commissions et les autres réunions',
+    enBref:
+      'Les lois sont d’abord examinées en commission. Seules les commissions qui examinent les lois comptent dans le taux de présence en commission.',
+    contenu: Commissions,
+  },
+  {
+    id: 'mesures',
+    titre: 'Ce que mesure l’application, et ce qu’elle ne mesure pas',
+    enBref:
+      'Les taux de présence décrivent une partie du travail d’un député, pas sa valeur. Comparez-les toujours à la médiane.',
+    contenu: Mesures,
+  },
 ];
 
 export function Comprendre() {
   const section = useParams().section as SectionComprendre | undefined;
 
-  // Une section demandée s'ouvre et vient en haut de l'écran (après le retour en haut de page).
+  // Une section demandée vient en haut de l'écran (après le retour en haut de page).
   useEffect(() => {
     if (!section) return;
     const id = requestAnimationFrame(() => document.getElementById(`comprendre-${section}`)?.scrollIntoView({ block: 'start' }));
@@ -55,14 +86,14 @@ export function Comprendre() {
             ))}
           </ol>
         </nav>
-        {SECTIONS.map(({ id, titre, contenu: Contenu }) => (
-          // key : une section demandée par l'adresse s'ouvre, même si elle était fermée.
-          <details key={`${id}-${section === id}`} id={`comprendre-${id}`} className="repli comprendre-section" open={section === id}>
-            <summary>
-              <h2>{titre}</h2>
-            </summary>
+        {SECTIONS.map(({ id, titre, enBref, contenu: Contenu }) => (
+          <section key={id} id={`comprendre-${id}`} className="comprendre-section" aria-labelledby={`comprendre-${id}-titre`}>
+            <h2 id={`comprendre-${id}-titre`}>{titre}</h2>
+            <p className="en-bref">
+              <strong>En bref.</strong> {enBref}
+            </p>
             <Contenu />
-          </details>
+          </section>
         ))}
       </div>
     </>
@@ -91,14 +122,15 @@ function CheminLoi() {
           allers-retours tant que députés et sénateurs ne l’ont pas adopté dans les mêmes termes.
         </li>
         <li>
-          <strong>La commission mixte paritaire (CMP).</strong> Après deux lectures dans chaque chambre, ou une seule si le
-          Gouvernement a engagé la procédure accélérée, sept députés et sept sénateurs cherchent un texte commun, que les
-          deux chambres votent ensuite.
+          <strong>La commission mixte paritaire (CMP).</strong> Si les deux chambres restent en désaccord, sept députés et
+          sept sénateurs cherchent un texte commun. Ils se réunissent après deux lectures dans chaque chambre, ou une seule
+          si le Gouvernement a engagé la procédure accélérée. Les deux chambres votent ensuite ce texte commun.
         </li>
         <li>
           <strong>Nouvelle lecture et lecture définitive.</strong> Si la CMP échoue, chaque chambre relit le texte, puis le
-          Gouvernement peut demander à l’Assemblée de statuer seule : c’est la lecture définitive. L’Assemblée a le dernier
-          mot.
+          Gouvernement peut demander à l’Assemblée de statuer seule : c’est la lecture définitive. L’Assemblée a alors le
+          dernier mot. Il y a deux exceptions : une révision de la Constitution et une loi organique relative au Sénat
+          doivent être adoptées par les deux chambres dans les mêmes termes.
         </li>
         <li>
           <strong>Le Conseil constitutionnel.</strong> Il vérifie que la loi respecte la Constitution. C’est obligatoire
@@ -129,9 +161,9 @@ function Votes() {
       <dl className="lexique">
         <dt>Scrutin public ordinaire</dt>
         <dd>
-          Il a lieu pendant le débat, souvent sur un amendement. Une centaine de députés seulement y prennent part : les
-          autres siègent au même moment en commission, travaillent dans leur circonscription ou suivent d’autres textes.
-          Un faible nombre de votants est donc normal.
+          Il a lieu pendant le débat, souvent sur un amendement. Une centaine de députés seulement y prennent part. Les
+          autres siègent souvent au même moment en commission, travaillent dans leur circonscription ou suivent d’autres
+          textes. Un faible nombre de votants est donc normal.
         </dd>
         <dt>Scrutin public solennel</dt>
         <dd>
@@ -146,7 +178,7 @@ function Votes() {
         <dt>Majorité</dt>
         <dd>
           Un texte ou un amendement est adopté s’il recueille plus de voix pour que de voix contre. Les abstentions ne
-          comptent pas dans ce calcul.
+          comptent pas dans ce calcul. En cas d’égalité, il est rejeté.
         </dd>
         <dt>Non-votant</dt>
         <dd>
@@ -168,10 +200,10 @@ function Motions() {
     <dl className="lexique">
       <dt>Le 49.3</dt>
       <dd>
-        L’article 49, alinéa 3, de la Constitution permet au Gouvernement de faire adopter un texte sans vote, en engageant
-        sa responsabilité. Les députés ont alors 24 heures pour déposer une motion de censure. Si aucune n’est adoptée, le
-        texte est considéré comme adopté par l’Assemblée à cette lecture. Le Gouvernement peut l’utiliser sans limite pour
-        les budgets, et pour un seul autre texte par session.
+        L’article 49, alinéa 3, de la Constitution permet au Gouvernement de faire adopter un texte sans vote. Il engage
+        alors sa responsabilité. Les députés ont 24 heures pour déposer une motion de censure. Si aucune n’est adoptée, le
+        texte est considéré comme adopté à cette lecture. Le Gouvernement peut l’utiliser sans limite pour les budgets, et
+        pour un seul autre texte par session.
       </dd>
       <dt>Motion de censure</dt>
       <dd>
@@ -219,7 +251,7 @@ const ORDRE_TYPES: TypeOrgane[] = [
 const DETAILS: Partial<Record<TypeOrgane, ReactNode>> = {
   permanente: (
     <>
-      Leur nombre est fixé par la Constitution : Lois, Finances, Affaires sociales, Affaires économiques, Affaires
+      La Constitution en limite le nombre à huit au plus. Ce sont aujourd’hui : Lois, Finances, Affaires sociales, Affaires économiques, Affaires
       étrangères, Affaires culturelles et éducation, Défense, Développement durable. Chacune compte environ 72 membres,
       répartis selon le poids des groupes. La commission des finances est toujours présidée par un député de
       l’opposition.
@@ -281,8 +313,8 @@ function Mesures() {
         <dt>Présence en séance</dt>
         <dd>
           Part des scrutins publics auxquels le député a pris part depuis le début de son mandat, hors motions de censure.
-          Comme beaucoup de scrutins ordinaires ont lieu pendant les réunions de commission, un taux bas ne veut pas dire
-          que le député ne travaille pas. Pour l’instant, l’application compte aussi les votes par délégation et ceux des
+          Comme des scrutins ordinaires ont souvent lieu en même temps que des réunions de commission, un taux bas ne veut
+          pas dire que le député ne travaille pas. Pour l’instant, l’application compte aussi les votes par délégation et ceux des
           non-votants comme une participation.
         </dd>
         <dt>Présence en commission</dt>
