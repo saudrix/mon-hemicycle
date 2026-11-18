@@ -10,9 +10,12 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { Unzip, UnzipInflate, unzipSync, strFromU8 } from 'fflate';
 import { construireCarte } from './carte.mjs';
+import { calculerIndicateurs } from './indicateurs.mjs';
 import { indexerAmendements, lireDossiers, lireExposes, rattacher } from './textes.mjs';
 
 const LEGISLATURE = '17';
+// Première séance de la 17e législature, après les élections de juin et juillet 2024.
+const DEBUT_LEGISLATURE = '2024-07-18';
 const AN = `https://data.assemblee-nationale.fr/static/openData/repository/${LEGISLATURE}`;
 const SOURCES = {
   scrutins: `${AN}/loi/scrutins/Scrutins.json.zip`,
@@ -356,6 +359,7 @@ async function main() {
     deputes,
   });
   write('scrutins.json', { dossiers, scrutins: resume });
+  write('indicateurs.json', calculerIndicateurs({ textes, resume, debut: DEBUT_LEGISLATURE, legislature: LEGISLATURE }));
   // Parcours des textes votés : [lieu, étape, date, issue].
   write('textes.json', Object.fromEntries([...utilises].filter((uid) => textes.has(uid)).map((uid) => [uid, textes.get(uid)])));
 

@@ -171,7 +171,8 @@ export function SalleVotes({
     // cette marge quand le siège est au dernier rang, tout en haut du dessin.
     <svg className="banc" viewBox="0 -26 350 176" role="img" aria-label={description}>
       <path d={vue.vide} fill="var(--encre)" opacity="0.18" />
-      <path d={vue.n} fill="var(--absent)" />
+      {/* Les non-votants sont là mais ne votent pas : un siège cerclé, pour ne pas les confondre avec les absents. */}
+      <path d={vue.n} fill="var(--fond, #fff)" stroke="var(--encre)" strokeWidth="1.1" />
       <path d={vue.a} fill="var(--abstention)" />
       <path d={vue.c} fill="var(--contre)" />
       <path d={vue.p} fill="var(--pour)" />

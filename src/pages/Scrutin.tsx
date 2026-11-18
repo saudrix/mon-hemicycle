@@ -10,6 +10,7 @@ import {
   POSITIONS,
   TYPES_SCRUTIN,
   bancsDeLaSalle,
+  enMandat,
   formatDate,
   getMeta,
   getScrutinDetail,
@@ -22,6 +23,7 @@ import {
 import { SalleVotes } from '../design/Illustrations';
 import { useAsync } from '../hooks';
 import { LIBELLES_NATURE, decouper, portee } from '../lecture';
+import { LienComprendre } from './Comprendre';
 
 export function Scrutin() {
   const num = Number(useParams().num);
@@ -79,41 +81,12 @@ export function Scrutin() {
             <p className="dossier">{nomTexte}</p>
           ))}
 
-        {/* Toute la salle, un siège par député, colorié par son vote. */}
-        <section className="bloc bloc-salle">
-          <div className="bloc-tete">
-            <h2>Toute la salle</h2>
-            <span className="bloc-tete-note">vu du perchoir</span>
-          </div>
-          <SalleDuScrutin meta={meta} detail={detail} monDepute={monDepute} />
-          <p className="legende-votes">
-            <span className="t-p">
-              <i /> {pour} pour
-            </span>
-            <span className="t-c">
-              <i /> {contre} contre
-            </span>
-            <span className="t-a">
-              <i /> {abs} abst.
-            </span>
-            <span className="t-n">
-              <i /> {nv} non-votant{nv > 1 ? 's' : ''}
-            </span>
-          </p>
-        </section>
-
-        <section className={`resultat ${adopte ? 'adopte' : 'rejete'}`}>
-          {type === 'MOC' ? (
-            <p>{pour} députés ont voté la censure (majorité requise : 289).</p>
-          ) : (
-            <>
-              <BarreVote pour={pour} contre={contre} abs={abs} />
-              <small>
-                {votants} votants{nv ? `, ${nv} non-votant${nv > 1 ? 's' : ''}` : ''} · {detail.typeMajorite}
-              </small>
-            </>
-          )}
-        </section>
+        {consequence && (
+          <section className="portee">
+            <h2>Ce que ça change</h2>
+            <p className={`portee-dit ${adopte ? 'adopte' : 'rejete'}`}>{consequence}</p>
+          </section>
+        )}
 
         {choix && monDepute != null && monDepute >= 0 && (
           <Link to={`/deputes/${meta.deputes[monDepute].id}`} className="mon-vote">
@@ -124,12 +97,35 @@ export function Scrutin() {
           </Link>
         )}
 
-        {consequence && (
-          <section className="portee">
-            <h2>Ce que ça change</h2>
-            <p className={`portee-dit ${adopte ? 'adopte' : 'rejete'}`}>{consequence}</p>
-          </section>
+        <section className={`resultat ${adopte ? 'adopte' : 'rejete'}`}>
+          {type === 'MOC' ? (
+            <p>{pour} députés ont voté la censure (majorité requise : 289).</p>
+          ) : (
+            <>
+              <BarreVote pour={pour} contre={contre} abs={abs} />
+              <p className="resultat-clair">{enClair(!!adopte, pour, contre, abs)}</p>
+              <small>
+                {votants} votants{nv ? `, ${nv} non-votant${nv > 1 ? 's' : ''}` : ''} · {detail.typeMajorite}
+              </small>
+            </>
+          )}
+        </section>
+        {type === 'MOC' ? (
+          <LienComprendre section="motions">Comment fonctionne la censure ?</LienComprendre>
+        ) : type !== 'SPS' && votants < 289 ? (
+          <LienComprendre section="votes">Pourquoi si peu de votants ?</LienComprendre>
+        ) : (
+          <LienComprendre section="votes">Comment se décide un vote ?</LienComprendre>
         )}
+
+        {/* Toute la salle, un siège par député, colorié par son vote. */}
+        <section className="bloc bloc-salle">
+          <div className="bloc-tete">
+            <h2>Toute la salle</h2>
+            <span className="bloc-tete-note">vue depuis la présidence</span>
+          </div>
+          <SalleDuScrutin meta={meta} detail={detail} monDepute={monDepute} date={date} officiel={{ p: pour, c: contre, a: abs, n: nv }} />
+        </section>
 
         {detail.amdt && <Expose a={detail.amdt} meta={meta} />}
 
@@ -220,12 +216,17 @@ function SalleDuScrutin({
   meta,
   detail,
   monDepute,
+  date,
+  officiel,
 }: {
   meta: Meta;
   detail: { grp: GroupeVote[] };
   monDepute: number | null | false;
+  date: string;
+  /** décompte officiel du scrutin : la légende le reprend, le dessin ne montre que les députés d'aujourd'hui */
+  officiel: Record<Position, number>;
 }) {
-  const { total, positions, rang } = useMemo(() => {
+  const { total, positions, rang, absents } = useMemo(() => {
     const bancs = bancsDeLaSalle(meta);
     const positions = new Map<number, Position>();
     for (const g of detail.grp) {
@@ -236,22 +237,47 @@ function SalleDuScrutin({
         }
       }
     }
+    // Absents : les députés en fonction ce jour-là, moins ceux qui ont voté ou étaient non-votants.
+    const enFonction = meta.deputes.filter((d) => enMandat(d, date)).length;
+    const absents = Math.max(0, enFonction - officiel.p - officiel.c - officiel.a - officiel.n);
     const moi = typeof monDepute === 'number' && monDepute >= 0 ? meta.deputes[monDepute] : null;
-    return { total: bancs.total, positions, rang: moi ? (bancs.rang.get(moi.id) ?? null) : null };
-  }, [meta, detail, monDepute]);
+    return { total: bancs.total, positions, rang: moi ? (bancs.rang.get(moi.id) ?? null) : null, absents };
+  }, [meta, detail, monDepute, date, officiel.p, officiel.c, officiel.a, officiel.n]);
 
-  const compte = { p: 0, c: 0, a: 0, n: 0 };
-  for (const p of positions.values()) compte[p]++;
+  const compte = officiel;
   const moi = typeof monDepute === 'number' && monDepute >= 0 ? meta.deputes[monDepute] : null;
 
   return (
-    <SalleVotes
-      total={total}
-      positions={positions}
-      rang={rang}
-      mot={moi?.civ === 'Mme' ? 'elle' : 'lui'}
-      description={`Hémicycle de ${total} sièges vu du perchoir : ${compte.p} pour en vert, ${compte.c} contre en corail, ${compte.a} abstentions en ambre, ${compte.n} non-votants en gris.`}
-    />
+    <>
+      <SalleVotes
+        total={total}
+        positions={positions}
+        rang={rang}
+        mot={moi?.civ === 'Mme' ? 'elle' : 'lui'}
+        description={`Hémicycle vu depuis la présidence, un siège par député en fonction aujourd’hui. Décompte officiel : ${compte.p} pour en vert, ${compte.c} contre en corail, ${compte.a} abstentions en ambre, ${compte.n} non-votants cerclés, ${absents} absents en gris clair.`}
+      />
+      <p className="legende-votes">
+        <span className="t-p">
+          <i /> {compte.p} pour
+        </span>
+        <span className="t-c">
+          <i /> {compte.c} contre
+        </span>
+        <span className="t-a">
+          <i /> {compte.a} abstention{compte.a > 1 ? 's' : ''}
+        </span>
+        <span className="t-n">
+          <i /> {compte.n} non-votant{compte.n > 1 ? 's' : ''}
+        </span>
+        <span className="t-vide">
+          <i /> {absents} absent{absents > 1 ? 's' : ''}
+        </span>
+      </p>
+      <p className="note">
+        Seuls les députés en fonction aujourd’hui ont un siège sur ce dessin. Non-votant : présent mais sans prendre part au
+        vote, comme le président de séance.
+      </p>
+    </>
   );
 }
 
@@ -369,4 +395,15 @@ function LigneGroupe({ g, meta }: { g: GroupeVote; meta: Meta }) {
       )}
     </li>
   );
+}
+
+/** Le résultat dit en une phrase : la règle de la majorité, appliquée à ce vote. */
+function enClair(adopte: boolean, pour: number, contre: number, abs: number) {
+  const abstentions = abs
+    ? ` Les ${abs} abstention${abs > 1 ? 's' : ''} ne compte${abs > 1 ? 'nt' : ''} pas.`
+    : '';
+  if (pour === contre) return `Autant de voix pour que contre : en cas d’égalité, c’est rejeté.${abstentions}`;
+  return adopte
+    ? `Adopté parce qu’il y a plus de voix pour (${pour}) que contre (${contre}).${abstentions}`
+    : `Rejeté parce qu’il y a plus de voix contre (${contre}) que pour (${pour}).${abstentions}`;
 }

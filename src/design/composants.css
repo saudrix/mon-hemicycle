@@ -1737,7 +1737,13 @@ a.mon-vote {
 }
 
 .legende-votes .t-n i {
-  background: var(--absent);
+  background: var(--fond, #fff);
+  box-shadow: inset 0 0 0 1.4px var(--encre);
+}
+
+.legende-votes .t-vide i {
+  background: var(--encre);
+  opacity: 0.18;
 }
 
 /* Ce que ça change : la phrase prend la couleur du résultat, une seule fois. */
@@ -2316,4 +2322,42 @@ a.mon-vote {
 .liste-circos-nom {
   flex: 1;
   min-width: 0;
+}
+
+/* Les chiffres de la législature, en tête d'une section de Comprendre. */
+.chiffres-cles ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.chiffres-cles li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.75rem 0.9rem;
+  border: 1.6px solid var(--encre);
+  border-radius: var(--r-petit);
+}
+
+.chiffres-cles-chiffre {
+  font-family: var(--titres);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.chiffres-cles-quoi {
+  font-weight: 600;
+}
+
+.chiffres-cles-repere {
+  color: var(--texte-second);
+  font-size: 0.88rem;
+}
+
+.chiffres-cles .note {
+  margin: 0.4rem 0 1rem;
 }

@@ -4,8 +4,9 @@ import { Chargement } from '../components';
 import { type ScrutinResume, type Texte, formatDate, getMesVotes, getScrutinsAJour, getTextes } from '../data';
 import { BandeauRetour } from '../design/Bandeau';
 import { useAsync } from '../hooks';
-import { decouper, estAmendement, natureDe } from '../lecture';
+import { decouper, estAmendement, libelleIssue, natureDe } from '../lecture';
 import { CarteScrutin, LigneAmendement } from '../ScrutinsUI';
+import { LienComprendre } from './Comprendre';
 
 type FiltreAmdt = 'tous' | 'adoptes' | 'rejetes';
 
@@ -52,7 +53,7 @@ export function TextePage() {
         <p className="bandeau-pied">
           {duree != null && `${duree < 1 ? 'Moins d’un mois' : `${duree} mois`} au Parlement · `}
           {liste.length} scrutin{liste.length > 1 ? 's' : ''}
-          {sort && ` · ${sort.split(',')[0].toLowerCase()}`}
+          {sort && ` · ${libelleIssue(sort).replace(/^./, (c) => c.toLowerCase())}`}
         </p>
         {texte?.i && (
           <p className="bandeau-pied">
@@ -86,11 +87,12 @@ export function TextePage() {
                     {etape}
                     {quand && ` · ${quand}`}
                   </span>
-                  {issue && <small data-issue={issue}>{issue}</small>}
+                  {issue && <small data-issue={issue}>{libelleIssue(issue)}</small>}
                 </li>
               );
             })}
           </ol>
+          <LienComprendre section="loi">Le chemin d’une loi, étape par étape</LienComprendre>
         </section>
       )}
       {!sansTexte && (

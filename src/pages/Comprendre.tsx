@@ -4,7 +4,9 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { type Indicateurs, formatDate, getIndicateurs } from '../data';
 import { BandeauRetour } from '../design/Bandeau';
+import { useAsync } from '../hooks';
 import { TYPES_ORGANE, type TypeOrgane } from '../organes';
 
 export type SectionComprendre = 'loi' | 'votes' | 'motions' | 'commissions' | 'mesures';
@@ -59,6 +61,7 @@ const SECTIONS: { id: SectionComprendre; titre: string; enBref: string; contenu:
 
 export function Comprendre() {
   const section = useParams().section as SectionComprendre | undefined;
+  const indicateurs = useAsync(() => getIndicateurs().catch(() => null), []).data ?? null;
 
   // Une section demandée vient en haut de l'écran (après le retour en haut de page).
   useEffect(() => {
@@ -92,6 +95,7 @@ export function Comprendre() {
             <p className="en-bref">
               <strong>En bref.</strong> {enBref}
             </p>
+            {indicateurs && <Chiffres section={id} ind={indicateurs} />}
             <Contenu />
           </section>
         ))}
@@ -337,5 +341,83 @@ function Mesures() {
         chiffres décrivent une partie de l’activité d’un député, pas sa valeur.
       </p>
     </>
+  );
+}
+
+const nombre = (n: number) => n.toLocaleString('fr-FR');
+const pourcent = (x: number | null) => (x == null ? '?' : `${Math.round(x * 100)} %`);
+
+/**
+ * Quelques chiffres de la législature en tête de section : le chiffre, ce qu'il compte,
+ * puis une phrase de repère. Jamais d'interprétation : les chiffres disent ce qui s'est passé.
+ */
+function Chiffres({ section, ind }: { section: SectionComprendre; ind: Indicateurs }) {
+  const { lois, article493, censure, scrutins } = ind;
+  let lignes: { chiffre: string; quoi: string; repere: string }[] = [];
+  if (section === 'loi') {
+    const mois = lois.dureeMedianeJours == null ? null : Math.round(lois.dureeMedianeJours / 30.44);
+    lignes = [
+      {
+        chiffre: nombre(lois.promulguees),
+        quoi: 'lois promulguées',
+        repere: `Dont ${nombre(lois.conventions)} qui autorisent la ratification d’un traité ou d’une convention.`,
+      },
+      {
+        chiffre: `${nombre(lois.propositions)} sur ${nombre(lois.horsConventions)}`,
+        quoi: 'lois nées d’une proposition de députés ou de sénateurs',
+        repere: `Hors traités et conventions. Les ${nombre(lois.projets)} autres viennent d’un projet du Gouvernement.`,
+      },
+      ...(lois.dureeMedianeJours == null
+        ? []
+        : [
+            {
+              chiffre: `${nombre(lois.dureeMedianeJours)} jours`,
+              quoi: 'durée médiane, du dépôt à la promulgation',
+              repere: `Environ ${mois} mois : la moitié des lois a été plus rapide, l’autre moitié plus lente.`,
+            },
+          ]),
+    ];
+  } else if (section === 'votes') {
+    lignes = [
+      {
+        chiffre: `${pourcent(scrutins.participationOrdinaires)} et ${pourcent(scrutins.participationSolennels)}`,
+        quoi: 'des députés prennent part à un scrutin ordinaire, puis à un scrutin solennel',
+        repere: `Valeurs médianes, sur ${nombre(scrutins.ordinaires)} scrutins ordinaires et ${nombre(scrutins.solennels)} scrutins solennels.`,
+      },
+    ];
+  } else if (section === 'motions') {
+    lignes = [
+      {
+        chiffre: nombre(article493.engagements),
+        quoi: `recours au 49.3, sur ${article493.textes.length} texte${article493.textes.length > 1 ? 's' : ''}`,
+        repere: `${article493.textes.map((t, i) => (i ? t.replace(/^./, (c) => c.toLowerCase()) : t)).join(', ')}.`,
+      },
+      {
+        chiffre: nombre(censure.votees),
+        quoi: 'motions de censure votées',
+        repere:
+          censure.adoptees.length === 0
+            ? 'Aucune n’a été adoptée.'
+            : `${censure.adoptees.length} adoptée${censure.adoptees.length > 1 ? 's' : ''}, le ${censure.adoptees.map(formatDate).join(', le ')} : le Gouvernement a été renversé.`,
+      },
+    ];
+  }
+  if (!lignes.length) return null;
+  return (
+    <div className="chiffres-cles">
+      <ul>
+        {lignes.map((l) => (
+          <li key={l.quoi}>
+            <span className="chiffres-cles-chiffre">{l.chiffre}</span>
+            <span className="chiffres-cles-quoi">{l.quoi}</span>
+            <span className="chiffres-cles-repere">{l.repere}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="note">
+        Depuis le {formatDate(ind.depuis)}, début de la législature. Calculé chaque jour à partir de l’open data de
+        l’Assemblée nationale.
+      </p>
+    </div>
   );
 }
