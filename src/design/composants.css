@@ -215,6 +215,10 @@ a.mon-vote {
 .b-n { background: var(--absent); }
 .b-vide { background: var(--gris-illu); }
 
+/* Un liseré blanc sépare les segments : pour, contre et abstention se distinguent
+   sans compter sur la couleur seule (vert et corail se confondent pour un daltonien). */
+.barre span + span { box-shadow: inset 2px 0 0 var(--blanc); }
+
 .jauge {
   height: 9px;
   border-radius: 6px;
@@ -2152,3 +2156,4 @@ a.mon-vote {
   border: 1.6px solid var(--encre);
   font-weight: 700;
 }
+

@@ -37,8 +37,11 @@ export function TextePage() {
   }
 
   const etapes = texte?.e ?? [];
-  const datees = etapes.map(([, , d]) => d).filter((d): d is string => !!d);
-  const navette = datees.length > 1 ? moisEntre(datees[0], datees.at(-1)!) : null;
+  const depot = etapes.map(([, , d]) => d).find((d): d is string => !!d);
+  // Durée au Parlement : du premier dépôt à la promulgation, ou à aujourd'hui si le texte est en cours.
+  const promulgation = etapes.find(([lieu]) => lieu === 'Promulgation');
+  const fin = promulgation?.[4] ?? promulgation?.[2] ?? new Date().toISOString().slice(0, 10);
+  const duree = depot ? moisEntre(depot, fin) : null;
   const sort = etapes.at(-1)?.[3];
 
   return (
@@ -47,7 +50,7 @@ export function TextePage() {
         <p className="bandeau-procedure">{sansTexte ? 'Procédure et textes non identifiés' : (texte?.p ?? 'Texte')}</p>
         <h1>{titre}</h1>
         <p className="bandeau-pied">
-          {navette != null && `${navette} mois de navette · `}
+          {duree != null && `${duree < 1 ? 'Moins d’un mois' : `${duree} mois`} au Parlement · `}
           {liste.length} scrutin{liste.length > 1 ? 's' : ''}
           {sort && ` · ${sort.split(',')[0].toLowerCase()}`}
         </p>
@@ -72,16 +75,21 @@ export function TextePage() {
             <p className="note">Un rejet n’arrête pas forcément le texte : en cours de navette, il repart à l’autre chambre.</p>
           )}
           <ol className="parcours">
-            {texte.e.map(([lieu, etape, date, issue], i) => (
-              <li key={i} className={i === texte.e.length - 1 ? 'actuelle' : undefined}>
-                <b>{lieu}</b>
-                <span>
-                  {etape}
-                  {date && ` · ${formatDate(date)}`}
-                </span>
-                {issue && <small data-issue={issue}>{issue}</small>}
-              </li>
-            ))}
+            {texte.e.map(([lieu, etape, debut, issue, dateIssue], i) => {
+              const derniere = i === texte.e.length - 1;
+              // Une étape terminée est datée par son issue (le vote) ; une étape en cours, par son début.
+              const quand = issue && dateIssue ? formatDate(dateIssue) : debut ? (derniere ? `en cours depuis le ${formatDate(debut)}` : formatDate(debut)) : null;
+              return (
+                <li key={i} className={derniere ? 'actuelle' : undefined}>
+                  <b>{lieu}</b>
+                  <span>
+                    {etape}
+                    {quand && ` · ${quand}`}
+                  </span>
+                  {issue && <small data-issue={issue}>{issue}</small>}
+                </li>
+              );
+            })}
           </ol>
         </section>
       )}

@@ -38,9 +38,17 @@ export default defineConfig(({ mode }) => ({
         importScripts: ['push-sw.js'],
         runtimeCaching: [
           {
+            // meta.json donne la version des autres fichiers : le réseau d'abord, le cache hors ligne.
+            urlPattern: ({ url }) => url.pathname.endsWith('/data/meta.json'),
+            handler: 'NetworkFirst',
+            options: { cacheName: 'donnees-an-meta', networkTimeoutSeconds: 4 },
+          },
+          {
+            // Les autres fichiers portent la version dans leur adresse (?v=) : une nouvelle
+            // génération crée de nouvelles entrées, les anciennes sortent par ancienneté.
             urlPattern: ({ url }) => url.pathname.includes('/data/'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'donnees-an', expiration: { maxEntries: 300 } },
+            options: { cacheName: 'donnees-an', expiration: { maxEntries: 600, maxAgeSeconds: 30 * 24 * 3600 } },
           },
           {
             urlPattern: ({ url }) => url.hostname.endsWith('assemblee-nationale.fr'),

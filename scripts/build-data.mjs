@@ -138,15 +138,24 @@ function buildActeurs(zip) {
   deputes.sort((x, y) => x.nom.localeCompare(y.nom, 'fr') || x.prenom.localeCompare(y.prenom, 'fr'));
 
   const commissions = {};
+  // Seules les commissions qui examinent les lois comptent dans le taux de présence : les huit
+  // commissions permanentes (chaque député est membre de l'une d'elles) et les commissions
+  // spéciales créées pour un texte. Les autres réunions (groupes d'amitié, enquêtes, délégations,
+  // affaires européennes…) restent listées sur la fiche, sans peser sur le taux.
+  const comptees = new Set();
   for (const o of organes.values()) {
-    if (['COMPER', 'CMP', 'CNPE', 'CNPS', 'COMSPSENAT', 'GA', 'MISINFO', 'CSPECIALE', 'CENQUETE', 'DELEG', 'OFFPAR'].includes(o.codeType)) {
+    if (['COMPER', 'CMP', 'CNPE', 'CNPS', 'COMSPSENAT', 'COMNL', 'GA', 'GEVI', 'MISINFO', 'MISINFOPRE', 'CSPECIALE', 'CENQUETE', 'DELEG', 'OFFPAR'].includes(o.codeType)) {
       commissions[o.uid] = o.libelleAbrege || o.libelle;
     }
+    if (TYPES_COMPTES.includes(o.codeType)) comptees.add(o.uid);
   }
-  return { groupes, deputes, commissions };
+  return { groupes, deputes, commissions, comptees };
 }
 
 // ---------- Scrutins ----------
+
+/** Types d'organes comptés dans la présence en commission : permanentes et spéciales. */
+const TYPES_COMPTES = ['COMPER', 'CNPS'];
 
 const POSITIONS = { pours: 'p', contres: 'c', abstentions: 'a', nonVotants: 'n' };
 
@@ -201,7 +210,7 @@ function buildScrutins(zip, indexOf) {
 
 // ---------- Présence en commission (agenda) ----------
 
-function buildPresenceCommission(zip, indexOf) {
+function buildPresenceCommission(zip, indexOf, comptees) {
   const parDepute = new Map();
   const aujourdhui = new Date().toISOString().slice(0, 10);
   for (const [, json] of jsonEntries(zip)) {
@@ -215,7 +224,8 @@ function buildPresenceCommission(zip, indexOf) {
       if (i == null || !p.presence) continue;
       const code = p.presence === 'présent' ? 'p' : p.presence === 'excusé' ? 'e' : 'a';
       if (!parDepute.has(i)) parDepute.set(i, []);
-      parDepute.get(i).push([date, r.organeReuniRef, code]);
+      // 4e valeur : 1 si la réunion compte dans le taux de présence en commission.
+      parDepute.get(i).push([date, r.organeReuniRef, code, comptees.has(r.organeReuniRef) ? 1 : 0]);
     }
   }
   return parDepute;
@@ -251,7 +261,7 @@ async function main() {
     Object.entries(SOURCES).map(([name, url]) => download(name, url)),
   );
 
-  const { groupes, deputes, commissions } = buildActeurs(zActeurs);
+  const { groupes, deputes, commissions, comptees } = buildActeurs(zActeurs);
   const index = new Map(deputes.map((d, i) => [d.id, i]));
   const indexOf = (id) => index.get(id);
   console.log(`✓ ${deputes.length} députés (${deputes.filter((d) => d.actif).length} en fonction), ${Object.keys(groupes).length} groupes`);
@@ -299,7 +309,7 @@ async function main() {
       `${resume.filter((s) => s[9]).length}/${resume.length} scrutins rattachés à un texte`,
   );
 
-  const commission = buildPresenceCommission(zAgenda, indexOf);
+  const commission = buildPresenceCommission(zAgenda, indexOf, comptees);
   console.log(`✓ présence en commission pour ${commission.size} députés`);
 
   const circos = buildCirconscriptions(bCirco);
@@ -350,7 +360,8 @@ async function main() {
     }
   }
   for (const [i, lignes] of commission) {
-    for (const [date, , code] of lignes) {
+    for (const [date, , code, compte] of lignes) {
+      if (!compte) continue;
       const c = (jour(date).com[i] ??= [0, 0, 0]);
       c['pea'.indexOf(code)]++;
     }

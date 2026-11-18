@@ -171,8 +171,9 @@ function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
           </p>
         ) : (
           <p>
-            Part des réunions de commission où les députés convoqués ont été notés présents par l'Assemblée. Les
-            absences excusées comptent comme des absences.
+            Part des réunions de commission où les députés convoqués ont été notés présents par l'Assemblée. Seules
+            comptent les commissions qui examinent les lois : les huit commissions permanentes et les commissions spéciales
+            créées pour un texte. Les absences excusées comptent comme des absences.
           </p>
         )}
         <p>Les députés sont rattachés à leur groupe et à leur région actuels.</p>

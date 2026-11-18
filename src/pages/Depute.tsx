@@ -133,7 +133,10 @@ function Fiche({
       m.scrutins++;
       if (vote.has(s[0])) m.votes++;
     }
-    for (const [date, , p] of activite.commissions) {
+    // Le taux ne retient que les commissions permanentes et spéciales ; la liste par commission montre tout.
+    // (Données générées avant ce choix : pas de 4e valeur, tout compte.)
+    const comptees = activite.commissions.filter((c) => c[3] !== 0);
+    for (const [date, , p] of comptees) {
       const m = parMois.get(date.slice(0, 7));
       if (!m) continue;
       m.convoc++;
@@ -142,8 +145,8 @@ function Fiche({
 
     const com = { p: 0, e: 0, a: 0 };
     const parCommission = new Map<string, { p: number; e: number; a: number }>();
+    for (const [, , p] of comptees) com[p]++;
     for (const [, organe, p] of activite.commissions) {
-      com[p]++;
       const c = parCommission.get(organe) ?? { p: 0, e: 0, a: 0 };
       c[p]++;
       parCommission.set(organe, c);
@@ -279,9 +282,11 @@ function Fiche({
             celle de l'Assemblée entière.
           </p>
           <p>
-            <strong>En commission</strong> : part des réunions de commission où {elle ? 'elle' : 'il'} était convoqué
-            {elle ? 'e' : ''} et noté{elle ? 'e' : ''} présent{elle ? 'e' : ''}. C'est la mesure de présence la plus fiable
-            publiée par l'Assemblée.
+            <strong>En commission</strong> : part des réunions de sa commission permanente, ou d'une commission spéciale
+            chargée d'un texte, où {elle ? 'elle' : 'il'} était convoqué{elle ? 'e' : ''} et noté{elle ? 'e' : ''} présent
+            {elle ? 'e' : ''}. C'est là que les lois sont examinées avant la séance, et c'est la mesure de présence la plus
+            fiable publiée par l'Assemblée. Les autres réunions (commissions d'enquête, délégations, groupes d'amitié) sont
+            facultatives : elles figurent dans la liste par commission sans peser sur le taux.
           </p>
           <p>
             <strong>Votes solennels</strong> : les votes sur l'ensemble des textes importants, annoncés à l'avance.

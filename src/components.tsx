@@ -31,7 +31,7 @@ export function BarreVote({ pour, contre, abs, nv = 0, total }: { pour: number; 
   if (!t) return <div className="barre vide" />;
   const w = (n: number) => `${(n / t) * 100}%`;
   return (
-    <div className="barre" role="img" aria-label={`${pour} pour, ${contre} contre, ${abs} abstentions`}>
+    <div className="barre" role="img" aria-label={`${pour} pour, ${contre} contre, ${abs} abstentions${nv > 0 ? `, ${nv} non-votants` : ''}`}>
       <span className="b-p" style={{ width: w(pour) }} />
       <span className="b-c" style={{ width: w(contre) }} />
       <span className="b-a" style={{ width: w(abs) }} />

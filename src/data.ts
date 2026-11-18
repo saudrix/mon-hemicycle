@@ -92,7 +92,8 @@ export type Texte = {
   t: string;
   p: string;
   i: string | null;
-  e: [string, string, string | null, string | null][];
+  /** étapes : [lieu, étape, début (dépôt ou saisine), issue, date de l'issue] */
+  e: [string, string, string | null, string | null, (string | null)?][];
 };
 
 /** [groupe, membres, pour, contre, abstentions, non-votants, position majoritaire, index des députés par position] */
@@ -109,8 +110,11 @@ export function positionDe(detail: ScrutinDetail, i: number): Position | undefin
 export type DeputeActivite = {
   /** [numéro du scrutin, position, position majoritaire du groupe] */
   votes: [number, Position, string][];
-  /** [date, organe, présence : p = présent, e = excusé, a = absent] */
-  commissions: [string, string, 'p' | 'e' | 'a'][];
+  /**
+   * [date, organe, présence : p = présent, e = excusé, a = absent, compte : 1 si la réunion
+   * compte dans le taux de présence (commission permanente ou spéciale)]
+   */
+  commissions: [string, string, 'p' | 'e' | 'a', 0 | 1][];
 };
 
 export type JourPresence = {
@@ -128,19 +132,33 @@ const cache = new Map<string, Promise<unknown>>();
 // Version web : données servies avec l'application. Version native : lues sur le site publié.
 const BASE_DONNEES = (import.meta.env.VITE_DATA_URL as string | undefined) ?? import.meta.env.BASE_URL;
 
+const META = 'meta.json';
+
+/**
+ * Les votes et la présence désignent les députés par leur rang dans meta.json, qui change
+ * quand un député arrive. Chaque fichier est donc demandé avec la date de génération de
+ * meta.json : un fichier mis en cache par une génération précédente n'est jamais relu
+ * avec la liste de députés d'une autre. meta.json, lui, est toujours revalidé.
+ */
 function load<T>(path: string): Promise<T> {
   if (!cache.has(path)) {
-    const p = fetch(`${BASE_DONNEES}data/${path}`).then((r) => {
-      if (!r.ok) throw new Error(`Données indisponibles (${path})`);
-      return r.json();
-    });
+    const url =
+      path === META
+        ? Promise.resolve(`${BASE_DONNEES}data/${META}`)
+        : getMeta().then((m) => `${BASE_DONNEES}data/${path}?v=${encodeURIComponent(m.genereLe)}`);
+    const p = url
+      .then((u) => fetch(u, path === META ? { cache: 'no-cache' } : undefined))
+      .then((r) => {
+        if (!r.ok) throw new Error(`Données indisponibles (${path})`);
+        return r.json();
+      });
     p.catch(() => cache.delete(path));
     cache.set(path, p);
   }
   return cache.get(path) as Promise<T>;
 }
 
-export const getMeta = () => load<Meta>('meta.json');
+export const getMeta = () => load<Meta>(META);
 export const getScrutins = () => load<{ dossiers: Record<string, string>; scrutins: ScrutinResume[] }>('scrutins.json');
 export const getScrutinDetail = async (num: number) =>
   (await load<Record<string, ScrutinDetail>>(`scrutins/${Math.floor(num / 250)}.json`))[num];

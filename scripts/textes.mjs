@@ -131,7 +131,29 @@ function datesEtConclusions(actes, dates = [], conclusions = []) {
 }
 
 /**
- * Dossiers législatifs : titre, procédure, initiative et étapes [lieu, étape, date, issue].
+ * Auteur du texte d'origine, lu sur l'acte de dépôt initial (pas sur le titre, qui omet souvent
+ * « projet de loi ») : PRJL… est un projet du Gouvernement, PION… une proposition, déposée à
+ * l'Assemblée (PIONAN…) par des députés ou au Sénat (PIONSN…) par des sénateurs.
+ */
+function initiative(actes) {
+  const depots = [];
+  const parcourir = (as) => {
+    for (const a of list(as)) {
+      if (a['@xsi:type'] === 'DepotInitiative_Type' && a.texteAssocie) depots.push(a);
+      parcourir(a.actesLegislatifs?.acteLegislatif);
+    }
+  };
+  parcourir(actes);
+  depots.sort((x, y) => (x.dateActe ?? '9').localeCompare(y.dateActe ?? '9'));
+  const texte = depots[0]?.texteAssocie ?? '';
+  if (texte.startsWith('PRJL')) return 'Gouvernement';
+  if (texte.startsWith('PIONAN')) return 'Députés';
+  if (texte.startsWith('PIONSN')) return 'Sénateurs';
+  return null;
+}
+
+/**
+ * Dossiers législatifs : titre, procédure, initiative et étapes [lieu, étape, début, issue, date de l'issue].
  * L'initiative est « Gouvernement » pour un projet, « Députés » ou « Sénateurs » pour une proposition.
  */
 export function lireDossiers(forEachJson) {
@@ -149,14 +171,16 @@ export function lireDossiers(forEachJson) {
       // Date de l'étape : dépôt, saisine ou publication (les nominations de rapporteur peuvent la précéder de loin).
       const debut = enfants.find((x) => x.dateActe && /-(DEPOT|SAISIE|PUB)/.test(x.codeActe))?.dateActe?.slice(0, 10);
       conclusions.sort(([x], [y]) => x.localeCompare(y));
-      const issue = conclusions.at(-1)?.[1]?.replace(/^considéré comme adopté.*49, alinéa 3.*$/i, 'considéré comme adopté (49.3)') ?? null;
-      etapes.push([e[0], e[1], debut ?? dates[0] ?? null, issue]);
+      const conclusion = conclusions.at(-1);
+      const issue = conclusion?.[1]?.replace(/^considéré comme adopté.*49, alinéa 3.*$/i, 'considéré comme adopté (49.3)') ?? null;
+      // Deux dates : le début de l'étape (dépôt, saisine) et celle de son issue (le vote), affichée avec l'issue.
+      etapes.push([e[0], e[1], debut ?? dates[0] ?? null, issue, conclusion?.[0]?.slice(0, 10) || null]);
     }
     const titre = d.titreDossier.titre;
     dossiers.set(d.uid, {
       t: titre,
       p: procedure,
-      i: /^projet/i.test(titre) ? 'Gouvernement' : etapes[0]?.[0] === 'Sénat' ? 'Sénateurs' : /^proposition/i.test(titre) ? 'Députés' : null,
+      i: initiative(d.actesLegislatifs?.acteLegislatif) ?? (/^projet/i.test(titre) ? 'Gouvernement' : /^proposition/i.test(titre) ? 'Députés' : null),
       e: etapes.sort((x, y) => (x[2] ?? '9').localeCompare(y[2] ?? '9')),
     });
   });

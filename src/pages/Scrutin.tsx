@@ -47,7 +47,7 @@ export function Scrutin() {
   const votants = pour + contre + abs;
   const lecture = decouper(titre);
   const nomTexte = (dossier && dossiers[dossier]) || lecture.texte;
-  const consequence = portee(lecture.nature, !!adopte, lecture.lecture);
+  const consequence = portee(lecture.nature, !!adopte, lecture.lecture, titre);
 
   const ecart = Math.abs(pour - contre);
 
