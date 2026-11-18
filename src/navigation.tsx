@@ -1,7 +1,8 @@
 // Ce qui se passe quand on change d'écran : la position dans la page, l'état des listes,
 // le titre de l'onglet et le focus du lecteur d'écran.
 //
-// Chaque entrée de l'historique a sa clé (location.key). On y range la position de
+// Chaque entrée de l'historique a sa clé (location.key, plus l'adresse : une adresse saisie
+// à la main n'a pas de clé propre). On y range la position de
 // défilement et l'état des listes (« Voir plus », filtres) : au retour arrière, on
 // retrouve la page telle qu'on l'avait quittée ; en ouvrant un écran, on part du haut.
 
@@ -33,8 +34,7 @@ function ecrire(cle: string, valeur: unknown) {
  * tel quel au retour arrière, et repart de `initial` quand on rouvre l'écran.
  */
 export function useEtatDePage<T>(nom: string, initial: T | (() => T)): [T, (v: T) => void] {
-  const { key } = useLocation();
-  const cle = `${key}:${nom}`;
+  const cle = `${useCleDePage()}:${nom}`;
   const [valeur, setValeur] = useState<T>(() => {
     const memo = lire<T>(cle);
     if (memo !== undefined) return memo;
@@ -50,40 +50,46 @@ export function useEtatDePage<T>(nom: string, initial: T | (() => T)): [T, (v: T
   return [valeur, changer];
 }
 
-/** Attend que la condition soit vraie, image par image, au plus `duree` ms. */
+/** L'entrée de l'historique où l'on se trouve. */
+function useCleDePage() {
+  const { key, pathname, search } = useLocation();
+  return `${key}:${pathname}${search}`;
+}
+
+/**
+ * Attend que la condition soit vraie, au plus `duree` ms. Une minuterie plutôt que
+ * requestAnimationFrame, suspendu tant que la page n'est pas visible.
+ */
 function attendre(condition: () => boolean, duree: number, fin: (ok: boolean) => void) {
-  const debut = performance.now();
+  const debut = Date.now();
   let id = 0;
   const tour = () => {
     if (condition()) return fin(true);
-    if (performance.now() - debut > duree) return fin(false);
-    id = requestAnimationFrame(tour);
+    if (Date.now() - debut > duree) return fin(false);
+    id = window.setTimeout(tour, 50);
   };
-  id = requestAnimationFrame(tour);
-  return () => cancelAnimationFrame(id);
+  id = window.setTimeout(tour, 0);
+  return () => clearTimeout(id);
 }
 
 /** Position de défilement, titre de l'onglet et focus, à chaque changement d'écran. */
 export function GestionNavigation() {
-  const { key } = useLocation();
+  const key = useCleDePage();
   const type = useNavigationType();
 
   useEffect(() => {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   }, []);
 
-  // Mémorise la position de la page courante. useLayoutEffect : l'écouteur est retiré
-  // avant que le nouvel écran, plus court, ne ramène la page en haut.
+  // Mémorise la position de la page courante. useLayoutEffect : le nettoyage passe avant
+  // que le nouvel écran, plus court, ne ramène la page en haut.
   useLayoutEffect(() => {
-    let image = 0;
-    const noter = () => {
-      cancelAnimationFrame(image);
-      image = requestAnimationFrame(() => ecrire(`${key}:defilement`, Math.round(window.scrollY)));
-    };
+    const noter = () => ecrire(`${key}:defilement`, Math.round(window.scrollY));
     window.addEventListener('scroll', noter, { passive: true });
     return () => {
-      cancelAnimationFrame(image);
       window.removeEventListener('scroll', noter);
+      // Au départ de la page, sa position n'a pas encore bougé : on la note une dernière fois.
+      noter();
     };
   }, [key]);
 
