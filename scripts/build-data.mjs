@@ -137,6 +137,31 @@ function buildActeurs(zip) {
   }
   deputes.sort((x, y) => x.nom.localeCompare(y.nom, 'fr') || x.prenom.localeCompare(y.prenom, 'fr'));
 
+  // Membres en fonction de chaque organe : députés siégeant aujourd'hui, avec un mandat ouvert
+  // dans l'organe (un même député peut y avoir deux mandats, membre et président par exemple).
+  const siegent = new Set(deputes.filter((d) => d.actif).map((d) => d.id));
+  const nomDe = new Map(deputes.map((d) => [d.id, `${d.prenom} ${d.nom}`]));
+  const membres = new Map();
+  /** rôles de chaque député dans les organes, quand il n'y est pas simple membre */
+  const roles = new Map();
+  for (const a of acteurs) {
+    const id = a.uid['#text'] ?? a.uid;
+    if (!siegent.has(id)) continue;
+    for (const m of list(a.mandats?.mandat)) {
+      const o = m.organes?.organeRef;
+      if (!o || m.dateFin) continue;
+      if (!membres.has(o)) membres.set(o, { ids: new Set(), president: null });
+      const e = membres.get(o);
+      e.ids.add(id);
+      const q = m.infosQualite?.codeQualite;
+      if (q === 'Président') e.president = id;
+      if (q && q !== 'Membre') {
+        if (!roles.has(id)) roles.set(id, {});
+        roles.get(id)[o] = m.infosQualite.libQualiteSex || q;
+      }
+    }
+  }
+
   const commissions = {};
   // Seules les commissions qui examinent les lois comptent dans le taux de présence : les huit
   // commissions permanentes (chaque député est membre de l'une d'elles) et les commissions
@@ -145,11 +170,18 @@ function buildActeurs(zip) {
   const comptees = new Set();
   for (const o of organes.values()) {
     if (['COMPER', 'CMP', 'CNPE', 'CNPS', 'COMSPSENAT', 'COMNL', 'GA', 'GEVI', 'MISINFO', 'MISINFOPRE', 'CSPECIALE', 'CENQUETE', 'DELEG', 'OFFPAR'].includes(o.codeType)) {
-      commissions[o.uid] = o.libelleAbrege || o.libelle;
+      const e = membres.get(o.uid);
+      // n : nom, t : type d'organe, m : membres en fonction, p : président (s'il est député)
+      commissions[o.uid] = {
+        n: o.libelleAbrege || o.libelle,
+        t: o.codeType,
+        m: e?.ids.size ?? null,
+        p: e?.president ? nomDe.get(e.president) : null,
+      };
     }
     if (TYPES_COMPTES.includes(o.codeType)) comptees.add(o.uid);
   }
-  return { groupes, deputes, commissions, comptees };
+  return { groupes, deputes, commissions, comptees, roles };
 }
 
 // ---------- Scrutins ----------
@@ -261,7 +293,7 @@ async function main() {
     Object.entries(SOURCES).map(([name, url]) => download(name, url)),
   );
 
-  const { groupes, deputes, commissions, comptees } = buildActeurs(zActeurs);
+  const { groupes, deputes, commissions, comptees, roles } = buildActeurs(zActeurs);
   const index = new Map(deputes.map((d, i) => [d.id, i]));
   const indexOf = (id) => index.get(id);
   console.log(`✓ ${deputes.length} députés (${deputes.filter((d) => d.actif).length} en fonction), ${Object.keys(groupes).length} groupes`);
@@ -336,6 +368,7 @@ async function main() {
     write(`deputes/${d.id}.json`, {
       votes: (votesParDepute.get(i) ?? []).sort((x, y) => y[0] - x[0]),
       commissions: (commission.get(i) ?? []).sort((x, y) => y[0].localeCompare(x[0])),
+      roles: roles.get(d.id) ?? {},
     });
   });
 

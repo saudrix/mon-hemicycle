@@ -16,6 +16,7 @@ import {
   tauxVote,
 } from '../data';
 import { BandeauPage } from '../design/Bandeau';
+import { LienComprendre } from './Comprendre';
 import { Halteres } from '../design/Illustrations';
 import { mediane } from '../design/dessins';
 import { useAsync } from '../hooks';
@@ -177,6 +178,7 @@ function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
           </p>
         )}
         <p>Les députés sont rattachés à leur groupe et à leur région actuels.</p>
+        <LienComprendre section="mesures">Quelles réunions comptent dans ces taux ?</LienComprendre>
       </Aide>
 
       <div className="onglets" role="tablist">

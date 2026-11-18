@@ -26,6 +26,8 @@ import {
   tauxVote,
 } from '../data';
 import { useAsync } from '../hooks';
+import { TYPES_ORGANE, type Organe, typeOrgane } from '../organes';
+import { LienComprendre } from './Comprendre';
 
 export function DeputePage() {
   const { id } = useParams();
@@ -100,7 +102,7 @@ function Fiche({
   meta: Meta;
   scrutins: ScrutinResume[];
   activite: DeputeActivite;
-  commissions: Record<string, string>;
+  commissions: Record<string, Organe>;
   id: string;
   variante: Variante;
   choix?: Choix | null;
@@ -291,6 +293,7 @@ function Fiche({
           <p>
             <strong>Votes solennels</strong> : les votes sur l'ensemble des textes importants, annoncés à l'avance.
           </p>
+          <LienComprendre section="mesures">Ce que mesurent ces chiffres, et ce qu’ils ne mesurent pas</LienComprendre>
         </Aide>
 
         <section className="bloc bloc-mois">
@@ -319,24 +322,7 @@ function Fiche({
         {onglet === 'votes' ? (
           <ListeVotes activite={activite} parNumero={parNumero} filtre={filtre} setFiltre={setFiltre} />
         ) : (
-          <ul className="liste">
-            {stats.parCommission.map(([organe, c]) => {
-              const total = c.p + c.e + c.a;
-              return (
-                <li key={organe} className="ligne-commission">
-                  <div>
-                    <strong>{commissions[organe] ?? organe}</strong>
-                    <small>
-                      {c.p} présent · {c.e} excusé · {c.a} absent
-                    </small>
-                  </div>
-                  <span>{pct(c.p / total)}</span>
-                  <Jauge valeur={c.p / total} couleur="var(--commission)" />
-                </li>
-              );
-            })}
-            {!stats.parCommission.length && <p className="etat">Aucune réunion de commission enregistrée.</p>}
-          </ul>
+          <ListeReunions parCommission={stats.parCommission} commissions={commissions} roles={activite.roles ?? {}} />
         )}
 
         <p className="note">
@@ -507,4 +493,78 @@ function decaler(iso: string, n: number) {
   d.setDate(1);
   d.setMonth(d.getMonth() + n);
   return d.toISOString().slice(0, 10);
+}
+
+type Compteur = { p: number; e: number; a: number };
+
+/**
+ * Les réunions du député, en deux groupes : celles qui comptent dans son taux (commission permanente
+ * ou spéciale), puis les autres. Chaque ligne dit son type en clair et se déplie pour l'expliquer.
+ */
+function ListeReunions({
+  parCommission,
+  commissions,
+  roles,
+}: {
+  parCommission: [string, Compteur][];
+  commissions: Record<string, Organe>;
+  roles: Record<string, string>;
+}) {
+  if (!parCommission.length) return <p className="etat">Aucune réunion de commission enregistrée.</p>;
+  const comptees = parCommission.filter(([o]) => TYPES_ORGANE[typeOrgane(commissions[o])].compte);
+  const autres = parCommission.filter(([o]) => !TYPES_ORGANE[typeOrgane(commissions[o])].compte);
+  const liste = (lignes: [string, Compteur][]) => (
+    <ul className="liste">
+      {lignes.map(([organe, c]) => (
+        <LigneReunion key={organe} organe={commissions[organe]} uid={organe} c={c} role={roles[organe]} />
+      ))}
+    </ul>
+  );
+  return (
+    <>
+      <LienComprendre section="commissions">Commission, délégation, groupe d’amitié : quelles différences ?</LienComprendre>
+      {comptees.length > 0 && (
+        <>
+          <h3 className="titre-liste-reunions">Comptent dans son taux</h3>
+          {liste(comptees)}
+        </>
+      )}
+      {autres.length > 0 && (
+        <>
+          <h3 className="titre-liste-reunions">Autres réunions</h3>
+          {liste(autres)}
+        </>
+      )}
+    </>
+  );
+}
+
+function LigneReunion({ organe, uid, c, role }: { organe: Organe | undefined; uid: string; c: Compteur; role?: string }) {
+  const total = c.p + c.e + c.a;
+  const type = TYPES_ORGANE[typeOrgane(organe)];
+  // « Membre », « Membre titulaire » : rien à signaler ; un rôle (présidente, secrétaire…) se montre.
+  const roleVisible = role && !/^membre( titulaire)?$/i.test(role) ? role : null;
+  return (
+    <li className="ligne-commission">
+      <details>
+        <summary>
+          <strong>{organe?.n ?? uid}</strong>
+          <span className="organe-type">
+            {type.libelle}
+            {roleVisible && ` · ${roleVisible}`}
+          </span>
+          <small>
+            {c.p} présent · {c.e} excusé · {c.a} absent
+          </small>
+        </summary>
+        <p className="organe-detail">
+          {type.resume}
+          {organe?.m ? ` ${organe.m} députés en sont membres aujourd’hui.` : ''}
+          {organe?.p ? ` Présidence : ${organe.p}.` : ''}
+        </p>
+      </details>
+      <span>{pct(c.p / total)}</span>
+      <Jauge valeur={c.p / total} couleur="var(--commission)" />
+    </li>
+  );
 }

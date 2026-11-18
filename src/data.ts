@@ -1,3 +1,5 @@
+import type { Organe } from './organes';
+
 // Accès aux fichiers produits par scripts/build-data.mjs, avec un cache mémoire.
 
 export type Groupe = { abrev: string; nom: string; couleur: string };
@@ -115,6 +117,8 @@ export type DeputeActivite = {
    * compte dans le taux de présence (commission permanente ou spéciale)]
    */
   commissions: [string, string, 'p' | 'e' | 'a', 0 | 1][];
+  /** rôle du député dans un organe quand il n'y est pas simple membre (Présidente, Secrétaire…) */
+  roles?: Record<string, string>;
 };
 
 export type JourPresence = {
@@ -212,7 +216,7 @@ export async function getScrutinsAJour() {
 export const getCarte = () =>
   load<{ id: string; nom: string; largeur: number; hauteur: number; circos: { k: string; d: string }[] }[]>('carte.json');
 
-export const getCommissions = () => load<Record<string, string>>('commissions.json');
+export const getCommissions = () => load<Record<string, Organe>>('commissions.json');
 export const getCirconscriptions = (dep: string) =>
   load<{ c: number; g: number[][][][] }[]>(`circonscriptions/${dep}.json`);
 

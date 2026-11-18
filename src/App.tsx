@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { Accueil, accueilAFaire } from './Accueil';
 import { getMeta, formatDate } from './data';
 import { useAsync } from './hooks';
 import { Carte } from './pages/Carte';
+import { Comprendre } from './pages/Comprendre';
 import { DeputePage } from './pages/Depute';
 import { MonDepute } from './pages/MonDepute';
 import { Presence } from './pages/Presence';
@@ -32,6 +33,8 @@ export function App() {
           <Route path="/presence" element={<Presence />} />
           <Route path="/textes/:id" element={<TextePage />} />
           <Route path="/carte" element={<Carte />} />
+          <Route path="/comprendre" element={<Comprendre />} />
+          <Route path="/comprendre/:section" element={<Comprendre />} />
           <Route path="/deputes/:id" element={<DeputePage />} />
         </Routes>
         <Source onRevoir={() => setAccueil(true)} />
@@ -81,6 +84,7 @@ function Source({ onRevoir }: { onRevoir: () => void }) {
       Données : open data de l'Assemblée nationale (Licence Ouverte)
       {meta.data?.dernierScrutin && <>, à jour du {formatDate(meta.data.dernierScrutin)}</>}. Application indépendante,
       non officielle.{' '}
+      <Link to="/comprendre">Comment travaille l’Assemblée</Link> ·{' '}
       <button className="lien" onClick={onRevoir}>
         Revoir la présentation
       </button>
