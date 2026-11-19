@@ -116,6 +116,17 @@ if (carte) {
 const commissions = lire('commissions.json');
 if (commissions) auMoins(Object.keys(commissions).length, 50, 'Commissions et organes');
 
+// Indicateurs de « Comment travaille l'Assemblée » : un chiffre aberrant serait affiché tel quel.
+const ind = lire('indicateurs.json');
+if (ind) {
+  const taux = (x) => x == null || (x > 0 && x <= 1);
+  verifier(ind.lois?.promulguees > 0 || reduit, 'Indicateurs : aucune loi promulguée');
+  verifier(ind.lois?.horsConventions === ind.lois?.projets + ind.lois?.propositions, 'Indicateurs : projets et propositions ne font pas le total');
+  verifier(ind.lois?.dureeMedianeJours == null || ind.lois.dureeMedianeJours > 0, 'Indicateurs : durée médiane négative ou nulle');
+  verifier(taux(ind.scrutins?.participationOrdinaires) && taux(ind.scrutins?.participationSolennels), 'Indicateurs : participation hors de 0 à 100 %');
+  verifier((ind.censure?.adoptees?.length ?? 0) <= (ind.censure?.votees ?? 0), 'Indicateurs : plus de censures adoptées que votées');
+}
+
 const dossierCircos = join(DOSSIER, 'circonscriptions');
 auMoins(existsSync(dossierCircos) ? readdirSync(dossierCircos).length : 0, 100, 'Départements (contours des circonscriptions)');
 

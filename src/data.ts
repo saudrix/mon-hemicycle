@@ -168,6 +168,28 @@ export const getScrutinDetail = async (num: number) =>
   (await load<Record<string, ScrutinDetail>>(`scrutins/${Math.floor(num / 250)}.json`))[num];
 export const getActivite = (id: string) => load<DeputeActivite>(`deputes/${id}.json`);
 export const getTextes = () => load<Record<string, Texte>>('textes.json');
+export const getIndicateurs = () => load<Indicateurs>('indicateurs.json');
+
+/** Chiffres sur le fonctionnement de l'Assemblée depuis le début de la législature (scripts/indicateurs.mjs). */
+export type Indicateurs = {
+  depuis: string;
+  lois: {
+    promulguees: number;
+    conventions: number;
+    horsConventions: number;
+    projets: number;
+    propositions: number;
+    dureeMedianeJours: number | null;
+  };
+  article493: { engagements: number; textes: string[] };
+  censure: { votees: number; adoptees: string[] };
+  scrutins: {
+    ordinaires: number;
+    solennels: number;
+    participationOrdinaires: number | null;
+    participationSolennels: number | null;
+  };
+};
 
 /** Mon député et sa position dans chaque scrutin, pour l'afficher dans les listes. */
 export type MesVotes = { depute: Depute; positions: Map<number, Position> };

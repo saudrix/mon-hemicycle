@@ -145,3 +145,24 @@ export function portee(nature: Nature, adopte: boolean, lecture: string | null, 
       return null;
   }
 }
+
+/**
+ * L'issue d'une étape du parcours d'un texte, en clair. L'open data emploie une vingtaine
+ * de formules, accordées au genre du texte (projet ou proposition) et parfois juridiques.
+ */
+export function libelleIssue(issue: string): string {
+  const i = issue.toLowerCase();
+  if (i.includes('49.3')) return 'Considéré comme adopté, sans vote (49.3)';
+  if (i.includes('article 45, alinéa 3')) return 'Adopté dans la version de la commission mixte paritaire';
+  if (/^adopt[ée]+ sans modification/.test(i)) return 'Adopté sans modification';
+  if (/^adopt[ée]+ avec modifications/.test(i) || /^modifi[ée]+$/.test(i)) return 'Adopté avec des modifications';
+  if (/^adopt[ée]+$/.test(i)) return 'Adopté';
+  if (/^rejet[ée]+$/.test(i)) return 'Rejeté';
+  if (i === 'accord') return 'Accord sur un texte commun';
+  if (i === 'désaccord') return 'Pas de texte commun';
+  if (i === 'conforme') return 'Conforme à la Constitution';
+  if (i === 'conforme avec réserve') return 'Conforme, avec des réserves d’interprétation';
+  if (i === 'partiellement conforme') return 'En partie censuré';
+  if (i === 'non conforme') return 'Censuré';
+  return issue.charAt(0).toUpperCase() + issue.slice(1);
+}
