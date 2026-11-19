@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEtatDePage } from '../navigation';
 import { useParams } from 'react-router-dom';
 import { Chargement } from '../components';
 import { type ScrutinResume, type Texte, formatDate, getMesVotes, getScrutinsAJour, getTextes } from '../data';
@@ -13,8 +13,8 @@ type FiltreAmdt = 'tous' | 'adoptes' | 'rejetes';
 export function TextePage() {
   const id = useParams().id ?? '';
   const donnees = useAsync(() => Promise.all([getScrutinsAJour(), getTextes().catch(() => ({}) as Record<string, Texte>), getMesVotes().catch(() => null)]), []);
-  const [filtre, setFiltre] = useState<FiltreAmdt>('tous');
-  const [limite, setLimite] = useState(50);
+  const [filtre, setFiltre] = useEtatDePage<FiltreAmdt>('filtre', 'tous');
+  const [limite, setLimite] = useEtatDePage('limite', 50);
 
   if (!donnees.data) return <Chargement error={donnees.error} />;
   const [{ scrutins, dossiers, direct }, textes, mes] = donnees.data;

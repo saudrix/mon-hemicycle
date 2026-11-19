@@ -108,7 +108,23 @@ summary:focus-visible {
 }
 
 .etat.erreur {
+  flex-direction: column;
+  align-items: stretch;
   color: var(--contre-encre);
+}
+
+.etat.erreur p {
+  margin: 0;
+}
+
+.etat.erreur .plus {
+  color: var(--texte);
+}
+
+/* Le titre de l'écran reçoit le focus à chaque changement d'écran, pour le lecteur
+   d'écran : pas de cadre pour autant, il n'est pas interactif. */
+h1[tabindex='-1']:focus {
+  outline: none;
 }
 
 .spinner {

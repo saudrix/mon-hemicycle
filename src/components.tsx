@@ -2,8 +2,23 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { type Depute, type Groupe, type Position, POSITIONS, circonscription, nomComplet, photo, pct } from './data';
 
+/** Une panne réseau donne des messages techniques, parfois en anglais (« Load failed ») : on les traduit. */
+function messageErreur(error: Error) {
+  if (error.name === 'TypeError' || /fetch|load failed|network/i.test(error.message))
+    return 'Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.';
+  return 'Les données n’ont pas pu être chargées. Réessayez dans un instant.';
+}
+
 export function Chargement({ error }: { error?: Error }) {
-  if (error) return <p className="etat erreur">{error.message}</p>;
+  if (error)
+    return (
+      <div className="etat erreur" role="alert">
+        <p>{messageErreur(error)}</p>
+        <button type="button" className="plus" onClick={() => window.location.reload()}>
+          Réessayer
+        </button>
+      </div>
+    );
   return (
     <div className="etat" aria-live="polite">
       <span className="spinner" aria-hidden /> Chargement…

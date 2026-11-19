@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useEtatDePage } from '../navigation';
 import { Aide, CarteDepute, Chargement, Pastille } from '../components';
 import {
   type JourPresence,
@@ -40,13 +41,13 @@ export function Presence() {
 }
 
 function Tableau({ meta, jours }: { meta: Meta; jours: JourPresence[] }) {
-  const [indicateur, setIndicateur] = useState<Indicateur>('vote');
-  const [vue, setVue] = useState<Vue>('groupes');
+  const [indicateur, setIndicateur] = useEtatDePage<Indicateur>('indicateur', 'vote');
+  const [vue, setVue] = useEtatDePage<Vue>('vue', 'groupes');
   const actifs = (j: JourPresence) => j.n > 0;
   const derniere = [...jours].reverse().find(actifs)?.date ?? jours.at(-1)!.date;
-  const [periode, setPeriode] = useState<string>('3m');
-  const [du, setDu] = useState<string>(decalerJours(derniere, -91));
-  const [au, setAu] = useState<string>(derniere);
+  const [periode, setPeriode] = useEtatDePage<string>('periode', '3m');
+  const [du, setDu] = useEtatDePage<string>('du', decalerJours(derniere, -91));
+  const [au, setAu] = useEtatDePage<string>('au', derniere);
 
   const choisirPeriode = (cle: string, nbJours: number | null) => {
     setPeriode(cle);
@@ -272,9 +273,9 @@ function ClassementDeputes({
   indicateur: Indicateur;
   setIndicateur: (i: Indicateur) => void;
 }) {
-  const [ordre, setOrdre] = useState<'desc' | 'asc'>('desc');
-  const [q, setQ] = useState('');
-  const [limite, setLimite] = useState(30);
+  const [ordre, setOrdre] = useEtatDePage<'desc' | 'asc'>('classement-ordre', 'desc');
+  const [q, setQ] = useEtatDePage('classement-recherche', '');
+  const [limite, setLimite] = useEtatDePage('classement-limite', 30);
   const recherche = q.toLowerCase();
   const lignes = meta.deputes
     .map((d, i) => ({ d, v: valeur(taux[i]) }))

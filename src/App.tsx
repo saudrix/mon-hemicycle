@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { HashRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { HashRouter, Link, NavLink, Route, Routes } from 'react-router-dom';
 import { Accueil, accueilAFaire } from './Accueil';
 import { getMeta, formatDate } from './data';
 import { useAsync } from './hooks';
+import { GestionNavigation } from './navigation';
 import { Carte } from './pages/Carte';
 import { Comprendre } from './pages/Comprendre';
 import { DeputePage } from './pages/Depute';
@@ -24,7 +25,7 @@ export function App() {
   }
   return (
     <HashRouter>
-      <HautDePage />
+      <GestionNavigation />
       <main>
         <Routes>
           <Route path="/" element={<MonDepute />} />
@@ -67,14 +68,6 @@ function Icone({ d }: { d: string }) {
       <path d={d} />
     </svg>
   );
-}
-
-function HautDePage() {
-  const { pathname, search } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname, search]);
-  return null;
 }
 
 function Source({ onRevoir }: { onRevoir: () => void }) {

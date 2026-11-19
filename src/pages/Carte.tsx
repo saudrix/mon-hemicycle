@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Chargement, Pastille, PositionChip } from '../components';
 import {
@@ -21,6 +21,7 @@ import {
 import { BandeauPage, BandeauRetour } from '../design/Bandeau';
 import { centre, montrer, texteSur } from '../design/dessins';
 import { useAsync } from '../hooks';
+import { useEtatDePage } from '../navigation';
 
 const COULEURS_VOTE: Record<Position | 'absent', string> = {
   p: 'var(--pour)',
@@ -67,7 +68,8 @@ function Vue({
   titre?: { num: number; date: string; titre: string };
 }) {
   const [selection, setSelection] = useState<string | null>(null);
-  const [filtre, setFiltre] = useState<string | null>(null);
+  const [filtre, setFiltre] = useEtatDePage<string | null>('filtre', null);
+  const [enListe, setEnListe] = useEtatDePage('liste', false);
 
   // Député en fonction de chaque circonscription, par clé « département-numéro ».
   const parCirco = useMemo(() => {
@@ -229,6 +231,28 @@ function Vue({
         })}
       </div>
         <p className="note">FE : Français établis hors de France (11 circonscriptions).</p>
+
+        {/* La même information sans la carte : lisible au lecteur d'écran, et pour qui ne situe pas sa circonscription. */}
+        <button type="button" className="plus" aria-expanded={enListe} onClick={() => setEnListe(!enListe)}>
+          {enListe ? 'Masquer la liste' : 'Voir la liste des circonscriptions'}
+        </button>
+        {enListe && (
+          <ListeCirconscriptions
+            parCirco={parCirco}
+            garder={(cle) => !filtre || categorie(cle) === filtre}
+            etiquette={(cle, index) =>
+              detail ? (
+                (() => {
+                  const p = positionDe(detail, index);
+                  return p ? <PositionChip position={p} /> : <em>n'a pas voté</em>;
+                })()
+              ) : (
+                <Pastille groupe={meta.groupes[categorie(cle)]} />
+              )
+            }
+            filtre={filtre ? libelle(filtre) : null}
+          />
+        )}
       </div>
     </>
   );
@@ -261,5 +285,56 @@ function Fiche({
         <path d="M9 5l7 7-7 7" />
       </svg>
     </Link>
+  );
+}
+
+/** Les circonscriptions en liste, rangées par département. */
+function ListeCirconscriptions({
+  parCirco,
+  garder,
+  etiquette,
+  filtre,
+}: {
+  parCirco: Map<string, { depute: Depute; index: number }>;
+  garder: (cle: string) => boolean;
+  etiquette: (cle: string, index: number) => ReactNode;
+  filtre: string | null;
+}) {
+  const departements = useMemo(() => {
+    const m = new Map<string, { nom: string; lignes: [string, Depute, number][] }>();
+    for (const [cle, { depute, index }] of parCirco) {
+      if (!garder(cle)) continue;
+      const num = depute.depNum!;
+      if (!m.has(num)) m.set(num, { nom: depute.dep ?? num, lignes: [] });
+      m.get(num)!.lignes.push([cle, depute, index]);
+    }
+    const ordre = (n: string) => n.padStart(3, '0');
+    return [...m.entries()]
+      .sort(([a], [b]) => ordre(a).localeCompare(ordre(b)))
+      .map(([num, d]) => ({ num, ...d, lignes: d.lignes.sort((a, b) => (a[1].circo ?? 0) - (b[1].circo ?? 0)) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parCirco, garder]);
+  return (
+    <section className="liste-circos" aria-label="Liste des circonscriptions">
+      {filtre && <p className="note">Seules les circonscriptions « {filtre} » sont listées.</p>}
+      {departements.map(({ num, nom, lignes }) => (
+        <div key={num}>
+          <h3>
+            {nom} {num !== '099' && <small>({num})</small>}
+          </h3>
+          <ul>
+            {lignes.map(([cle, depute, index]) => (
+              <li key={cle}>
+                <Link to={`/deputes/${depute.id}`}>
+                  <span className="liste-circos-num">{depute.circo}{depute.circo === 1 ? 're' : 'e'}</span>
+                  <span className="liste-circos-nom">{nomComplet(depute)}</span>
+                  {etiquette(cle, index)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
   );
 }

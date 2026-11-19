@@ -202,7 +202,7 @@ function BandeauVerdict({
         <span className="badge-encre">{nature}</span>
         <span className="verdict-repere">{repere}</span>
       </div>
-      <h1 className="verdict">
+      <h1 className="verdict" data-titre={`${adopte ? 'Adopté' : 'Rejeté'} : ${objet}`}>
         {adopte ? 'Adopté' : 'Rejeté'}
         {ecart != null && ecart > 0 && (
           <small>
