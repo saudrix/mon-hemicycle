@@ -140,6 +140,25 @@ npm run dev       # http://localhost:5173
 
 `npm run data -- --offline` réutilise les archives déjà téléchargées dans `.cache/`.
 
+### Tests
+
+`main` part en ligne dès qu'on y fusionne : chaque PR passe d'abord le workflow *Vérifications*.
+
+```bash
+npm run typecheck   # types
+npm test            # tests unitaires (tests/unit) : lecture des titres, présence, textes
+npm run test:e2e    # parcours dans un navigateur au format téléphone (tests/e2e), sur un jeu de données figé
+```
+
+La première fois, installer le navigateur des parcours : `npx playwright install chromium`.
+
+Les parcours tournent sur `tests/fixtures/data`, un extrait d'environ 1,5 Mo des vraies données (Ariège, 173 scrutins,
+deux mois de présence). Quand le format des données change, le régénérer après `npm run data` avec
+`npm run jeu-de-test`.
+
+Avant chaque mise en ligne, `npm run verifier:donnees` contrôle les données produites : nombre de députés, scrutins
+complets et récents, fichiers présents. S'il échoue, le déploiement s'arrête et le site garde les données de la veille.
+
 ### Tester sur son téléphone
 
 `npm run dev` écoute sur le réseau local. Avec le téléphone sur le même Wi-Fi que l'ordinateur, ouvrir l'adresse

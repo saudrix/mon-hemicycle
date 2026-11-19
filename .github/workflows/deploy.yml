@@ -28,7 +28,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Tests unitaires
+        run: npm test
       - run: npm run data
+      # Données vides, tronquées ou au format changé : le déploiement s'arrête ici et le
+      # site garde celles de la veille.
+      - name: Contrôle des données
+        run: npm run verifier:donnees
       - run: npm run build
         env:
           # Adresse du Worker de notifications (Settings → Secrets and variables → Actions → Variables)
