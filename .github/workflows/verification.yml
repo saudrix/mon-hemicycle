@@ -1,0 +1,47 @@
+# Vérifie chaque PR avant sa fusion dans main, qui part en ligne aussitôt :
+# compilation, tests unitaires, puis les parcours principaux dans un navigateur, sur le
+# jeu de données figé (tests/fixtures/data).
+name: Vérifications
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    name: Compilation et tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Types
+        run: npm run typecheck
+      - name: Tests unitaires
+        run: npm test
+      - name: Jeu de données des tests
+        run: node scripts/verifier-donnees.mjs tests/fixtures/data --jeu-reduit
+      - name: Navigateur
+        run: npx playwright install --with-deps chromium
+      - name: Parcours de bout en bout
+        run: npm run test:e2e
+      - name: Rapport des parcours
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-parcours
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

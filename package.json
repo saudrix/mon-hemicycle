@@ -13,7 +13,11 @@
     "typecheck": "tsc --noEmit",
     "build:mobile": "tsc --noEmit && vite build --mode mobile && node -e \"require('fs').rmSync('dist/data',{recursive:true,force:true})\"",
     "ios": "npm run build:mobile && cap sync ios && cap open ios",
-    "android": "npm run build:mobile && cap sync android && cap open android"
+    "android": "npm run build:mobile && cap sync android && cap open android",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "verifier:donnees": "node scripts/verifier-donnees.mjs",
+    "jeu-de-test": "node scripts/jeu-de-test.mjs && node scripts/verifier-donnees.mjs tests/fixtures/data --jeu-reduit"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
@@ -25,6 +29,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -32,6 +37,7 @@
     "fflate": "^0.8.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.1"
   }
 }

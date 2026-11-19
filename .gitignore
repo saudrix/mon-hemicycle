@@ -15,3 +15,8 @@ public/data/
 ios/App/App/public/
 android/app/src/main/assets/public/
 ios/App/build/
+
+# Tests de bout en bout (Playwright)
+dist-e2e/
+test-results/
+playwright-report/
